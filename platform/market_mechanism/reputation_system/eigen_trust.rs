@@ -1,3 +1,4 @@
+
 // eigen_trust.rs - Enterprise-Grade Reputation Management
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
@@ -174,4 +175,57 @@ fn normalize_trust(trust_scores: &HashMap<String, f64>) -> HashMap<String, f64> 
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum ReputationError
+pub enum ReputationError {
+    #[error("Database connection failed")]
+    DbError(#[from] tokio_postgres::Error),
+    #[error("Serialization failed")]
+    SerializationError(#[from] bincode::Error),
+    #[error("Invalid cryptographic operation")]
+    CryptoError(#[from] ed25519_dalek::SignatureError),
+    #[error("Node not found in registry")]
+    NodeNotFound,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ed25519_dalek::Keypair;
+
+    async fn test_setup() -> ReputationEngine {
+        let engine = ReputationEngine::new("host=localhost user=postgres", 0.85)
+            .await
+            .unwrap();
+        engine.initialize_trust().await.unwrap();
+        engine
+    }
+
+    #[tokio::test]
+    async fn test_trust_convergence() {
+        let engine = test_setup().await;
+        engine.update_trust().await.unwrap();
+        let nodes = engine.nodes.read().await;
+        assert!(nodes.values().all(|n| n.global_trust > 0.0));
+    }
+
+    #[tokio::test]
+    async fn test_sybil_resistance() {
+        let mut keypair = Keypair::generate(&mut rand::rngs::OsRng);
+        let mut engine = test_setup().await;
+        
+        // Attempt to create fake nodes
+        let nodes = vec![
+            ("malicious1", keypair.public.clone()),
+            ("malicious2", keypair.public.clone()),
+        ];
+
+        // Verify system rejects unsigned interactions
+        let result = engine.add_interaction(
+            "malicious1",
+            "malicious2",
+            1.0,
+            &keypair.sign(b"fake")
+        ).await;
+        
+        assert!(matches!(result, Err(ReputationError::NodeNotFound)));
+    }
+}
