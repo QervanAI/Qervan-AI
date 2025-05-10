@@ -1,0 +1,100 @@
+# qdrant_config.toml - Enterprise Vector Database Configuration
+
+[service]
+host = "0.0.0.0"               # Bind to all interfaces
+port = 6333                    # Main API port
+max_request_size_mb = 256      # Max payload size
+enable_telemetry = false       # Disable data collection
+enable_metrics = true          # Expose Prometheus metrics
+
+[storage]
+# Distributed storage configuration
+storage_backend = "raft"       # Use Raft consensus
+raft_config = "raft.json"      # Custom Raft settings
+data_path = "/var/lib/qdrant"  # Persistent storage
+snapshots_path = "/var/lib/qdrant/snapshots"
+recovery_mode = "auto"         # Automatic crash recovery
+
+[cluster]
+# Distributed deployment settings
+peer_url = "http://node1:6333" # Seed node URL
+bootstrap_peers = [
+  "node1:6333",
+  "node2:6333",
+  "node3:6333"
+]
+consul_service_name = "qdrant" # Service discovery
+enable_sharding = true         # Enable horizontal scaling
+shard_count = 16               # Number of shards
+replication_factor = 3         # Data redundancy
+
+[performance]
+# Resource management
+max_search_threads = 32        # Concurrent searches
+max_optimization_threads = 8   # Background jobs
+wal_capacity_mb = 10240        # Write-ahead log size
+max_upload_queue_size = 256    # Async upload buffer
+max_connection_pool_size = 512 # Postgres connections
+
+[optimizers]
+# Vector index configuration
+memmap_threshold_kb = 200000   # 200MB threshold
+indexing_threshold = 100000    # Index after 100K vectors
+hnsw_ef = 128                  # Search precision
+hnsw_m = 16                    # Construction parameter
+on_disk_vectors = true         # Enable mmap vectors
+
+[security]
+# Access control
+api_key = "file:///etc/qdrant/api-keys.yaml" # RBAC config
+tls = {
+  cert = "/etc/qdrant/certs/fullchain.pem",
+  key = "/etc/qdrant/certs/privkey.pem"
+}
+cors_allowed_origins = [
+  "https://nuzon.ai",
+  "https://*.nuzon.cloud"
+]
+
+[monitoring]
+# Observability config
+prometheus_port = 9090          # Metrics endpoint
+healthcheck_timeout_sec = 30    # Cluster health probe
+telemetry_interval_sec = 60     # Metrics collection
+log_level = "info"              # Production logging
+log_path = "/var/log/qdrant"    # Centralized logging
+
+[resource_limits]
+# Protection against misconfigurations
+max_vector_count = 1000000000   # 1B vectors per collection
+max_memory_usage_ratio = 0.8    # 80% of system memory
+max_disk_usage_ratio = 0.9      # 90% of volume capacity
+max_request_duration_ms = 30000 # 30s timeout
+
+[query]
+# Search optimization
+timeout_sec = 10                # Query cutoff
+prefer_grpc = true              # Use binary protocol
+query_deny_list = [
+  "DROP COLLECTION",
+  "CREATE SNAPSHOT"
+]                              # Block dangerous ops
+
+[backup]
+# Disaster recovery
+snapshot_interval = "6h"       # Periodic snapshots
+backup_strategy = "s3://nuzon-vector-backups"
+retention_period = "720h"      # 30-day retention
+incremental_backups = true     # Storage optimization
+
+[cache]
+# Performance acceleration
+query_cache_size_mb = 8192     # 8GB query cache
+vector_cache_ttl_sec = 3600    # 1hr cache lifetime
+payload_cache_enabled = true   # Metadata caching
+
+[network]
+# Enterprise networking
+grpc_port = 6334               # Binary protocol
+http2_keepalive_interval = 30  # Connection management
+max_concurrent_streams = 1000  # HTTP/2 multiplexing
