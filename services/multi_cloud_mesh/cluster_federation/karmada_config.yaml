@@ -1,0 +1,144 @@
+# karmada_config.yaml - Multi-Cluster Orchestration Core
+apiVersion: config.karmada.io/v1alpha1
+kind: ResourceRegistry
+metadata:
+  name: nuzon-ai-agents
+spec:
+  resourceSelectors:
+    - apiVersion: "ai.nuzon.io/v1"
+      kind: "AI_AGENT_SET"
+  targetClusters:
+    clusterNames:
+      - "gcp-primary"
+      - "azure-failover"
+      - "aws-edge-01"
+    clusterAffinity:
+      matchLabels:
+        environment: "prod"
+
+---
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: quantum-safe-agents
+spec:
+  resourceSelectors:
+    - apiVersion: "ai.nuzon.io/v1"
+      kind: "AI_AGENT_SET"
+  placement:
+    clusterAffinities:
+      - affinity:
+          clusterNames:
+            - "gcp-primary"
+            - "azure-failover"
+        weight: 100
+    replicaScheduling:
+      replicaDivisionPreference: Weighted
+      replicaSchedulingType: Divided
+      weightPreference:
+        staticWeightList:
+          - targetCluster:
+              clusterNames: ["gcp-primary"]
+            weight: 70
+          - targetCluster: 
+              clusterNames: ["azure-failover"]
+            weight: 30
+    failover:
+      maxUnavailable: "30%"
+      periodSeconds: 300
+
+---
+apiVersion: policy.karmada.io/v1alpha1
+kind: OverridePolicy
+metadata:
+  name: cluster-specific-configs
+spec:
+  resourceSelectors:
+    - apiVersion: "ai.nuzon.io/v1"
+      kind: "AI_AGENT_SET"
+  overrideRules:
+    - targetCluster:
+        clusterNames: ["aws-edge-01"]
+      overriders:
+        plaintext:
+          - path: "/spec/quantumSecurityLevel"
+            operator: "replace"
+            value: "2"
+          - path: "/spec/maxConcurrentTasks"
+            operator: "replace" 
+            value: "50"
+
+---
+apiVersion: networking.karmada.io/v1alpha1
+kind: MultiClusterService
+metadata:
+  name: nuzon-agent-mesh
+spec:
+  serviceType: CrossCluster
+  ports:
+    - name: qkd-channel
+      protocol: TCP
+      port: 8443
+      targetPort: 2048
+  clusters:
+    - name: "gcp-primary"
+    - name: "azure-failover"
+  healthCheck:
+    endpoint: "/healthz"
+    periodSeconds: 60
+    successThreshold: 2
+    failureThreshold: 3
+
+---
+apiVersion: autoscaling.karmada.io/v1alpha1
+kind: FederatedHPA
+metadata:
+  name: global-agent-autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: "ai.nuzon.io/v1"
+    kind: "AI_AGENT_SET"
+  minReplicas: 100
+  maxReplicas: 1000
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 20
+          periodSeconds: 60
+
+---
+apiVersion: config.karmada.io/v1alpha1
+kind: ClusterPropagationPolicy
+metadata:
+  name: security-policies
+spec:
+  clusterSelectors:
+    - matchLabels:
+        security-level: "high"
+  placement:
+    spreadConstraints:
+      - maxGroups: 3
+        minGroups: 2
+    tolerateSeconds: 600
+  propagationConstraints:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      clusterSelectorTerms:
+        - matchExpressions:
+            - key: "karmada.io/region"
+              operator: In
+              values: ["us-west1", "eastus"]
