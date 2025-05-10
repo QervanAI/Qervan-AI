@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+package nuzon.ai.agent.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/nuzon-ai/protos/agent/v1;agent";
+option java_multiple_files = true;
+option java_package = "ai.nuzon.platform.agent.v1";
+
+// Agent lifecycle management
+service AgentLifecycleService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Heartbeat(stream HeartbeatRequest) returns (stream HeartbeatResponse);
+  rpc Deregister(DeregisterRequest) returns (DeregisterResponse);
+}
+
+// Agent-to-agent communication 
+service AgentCommunicationService {
+  rpc DirectMessage(AgentMessage) returns (AgentAck);
+  rpc Broadcast(AgentMessage) returns (stream AgentAck);
+  rpc Multicast(AgentMessage) returns (stream AgentAck);
+  rpc StreamMessages(stream AgentMessage) returns (stream AgentMessage);
+}
+
+// Security and authentication
+service SecurityService {
+  rpc MutualAuth(HandshakeRequest) returns (HandshakeResponse);
+  rpc KeyRotation(KeyRotationRequest) returns (KeyRotationResponse);
+  rpc QuantumSafeSign(QuantumSignRequest) returns (QuantumSignResponse);
+}
+
+// Policy enforcement
+service PolicyService {
+  rpc CheckPolicy(PolicyRequest) returns (PolicyResponse);
+  rpc UpdatePolicies(stream PolicyUpdate) returns (PolicyUpdateAck);
+}
+
+// Monitoring and observability
+service MonitoringService {
+  rpc ReportMetrics(stream MetricData) returns (MetricSummary);
+  rpc LogStreaming(stream LogEntry) returns (stream LogAck);
+  rpc RequestTrace(TraceRequest) returns (TraceResponse);
+}
+
+// Cross-domain federation
+service FederationService {
+  rpc InterDomainDiscovery(DiscoveryRequest) returns (stream DiscoveryResponse);
+  rpc CrossCloudSync(SyncRequest) returns (SyncResponse);
+  rpc ComplianceCheck(ComplianceRequest) returns (ComplianceResponse);
+}
+
+// Fault tolerance
+service BackupService {
+  rpc StateSnapshot(StateRequest) returns (stream StateChunk);
+  rpc StateRestore(stream StateChunk) returns (StateSummary);
+}
+
+// Core message types
+message RegisterRequest {
+  string agent_id = 1;
+  AgentType type = 2;
+  string version = 3;
+  repeated string capabilities = 4;
+  Location location = 5;
+  LoadBalancing load_balancing = 6;
+  map<string, string> metadata = 7;
+}
+
+message AgentMessage {
+  string message_id = 1;
+  string from = 2;
+  string to = 3;
+  Priority priority = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  ContentType content_type = 6;
+  bytes payload = 7;
+  SecurityContext security = 8;
+}
+
+message SecurityContext {
+  bytes nonce = 1;
+  string signature_algorithm = 2;
+  bytes signature = 3;
+  google.protobuf.Timestamp expiration = 4;
+}
+
+message PolicyRequest {
+  string policy_id = 1;
+  google.protobuf.Any resource = 2;
+  string action = 3;
+  map<string, string> context = 4;
+}
+
+message MetricData {
+  google.protobuf.Timestamp timestamp = 1;
+  MetricType type = 2;
+  double value = 3;
+  map<string, string> labels = 4;
+}
+
+// Enum definitions
+enum AgentType {
+  AGENT_TYPE_UNSPECIFIED = 0;
+  CORE = 1;
+  WORKER = 2;
+  ORCHESTRATOR = 3;
+  GATEWAY = 4;
+}
+
+enum Priority {
+  PRIORITY_EMERGENCY = 0;
+  PRIORITY_HIGH = 1;
+  PRIORITY_NORMAL = 2;
+  PRIORITY_LOW = 3;
+}
+
+enum ContentType {
+  CONTENT_TYPE_JSON = 0;
+  CONTENT_TYPE_PROTOBUF = 1;
+  CONTENT_TYPE_BINARY = 2;
+}
+
+enum MetricType {
+  METRIC_CPU = 0;
+  METRIC_MEMORY = 1;
+  METRIC_LATENCY = 2;
+  METRIC_THROUGHPUT = 3;
+  METRIC_ERROR_RATE = 4;
+}
+
+enum ComplianceStandard {
+  COMPLIANCE_GDPR = 0;
+  COMPLIANCE_HIPAA = 1;
+  COMPLIANCE_SOC2 = 2;
+  COMPLIANCE_ISO27001 = 3;
+}
+
+// Advanced types
+message QuantumSignRequest {
+  bytes payload = 1;
+  string algorithm = 2;
+  bool hybrid_mode = 3;
+}
+
+message LoadBalancing {
+  int32 weight = 1;
+  repeated string affinity_keys = 2;
+  string strategy = 3;
+}
+
+message Location {
+  string cloud_provider = 1;
+  string region = 2;
+  string availability_zone = 3;
+  GeoCoordinates geo = 4;
+}
+
+message GeoCoordinates {
+  double latitude = 1;
+  double longitude = 2;
+}
