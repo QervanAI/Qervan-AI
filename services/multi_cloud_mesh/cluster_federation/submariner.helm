@@ -1,0 +1,176 @@
+# submariner.helm - Cross-Cloud Secure Networking Core
+apiVersion: submariner.io/v1
+kind: Broker
+metadata:
+  name: nuzon-global-broker
+spec:
+  globalnetEnabled: true
+  defaultGlobalnetClusterSize: 65536
+  defaultCustomDomains: ["nuzon.ai"]
+  connectionHealthCheck:
+    enabled: true
+    intervalSeconds: 30
+    maxPacketLossCount: 5
+  natEnabled: false
+
+---
+apiVersion: submariner.io/v1
+kind: Cluster
+metadata:
+  name: gcp-primary
+spec:
+  clusterID: "gcp-primary"
+  serviceCIDR: "10.128.0.0/20"
+  clusterCIDR: "10.132.0.0/14"
+  globalCIDR: "242.0.128.0/17"
+  privateCIDR: "192.168.128.0/24"
+  cableDriver: "libreswan"
+  credentialsSecret:
+    name: "gcp-secret"
+  labelSelector:
+    matchLabels:
+      tier: "core"
+      cloud: "gcp"
+
+---
+apiVersion: submariner.io/v1
+kind: Gateway
+metadata:
+  name: gcp-primary-gateway
+spec:
+  ha: true
+  loadBalancerEnabled: true
+  portConfig:
+    nattDiscoveryPort: 4500
+    nattPort: 4500
+    tunnelPort: 4800
+  resourceLimits:
+    cpu: "2"
+    memory: "4Gi"
+  nodeSelector:
+    node-role.kubernetes.io/gateway: ""
+  tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "gateway"
+    effect: "NoSchedule"
+
+---
+apiVersion: submariner.io/v1
+kind: ServiceDiscovery
+metadata:
+  name: global-service-discovery
+spec:
+  namespace: "submariner-operator"
+  debug: false
+  repository: "quay.io/submariner"
+  version: "1.15"
+  brokerK8sApiServer: "https://broker.nuzon.ai:6443"
+  brokerK8sApiServerToken: "{{ .Values.brokerToken }}"
+  brokerK8sCA: "/etc/submariner/ca.crt"
+  clusterID: "{{ .Cluster.ID }}"
+  customDomains: ["svc.cluster.local", "nuzon.ai"]
+  coreDNSCustomConfig: |
+    federation {
+      global nuzon.ai
+    }
+
+---
+apiVersion: submariner.io/v1
+kind: GlobalnetNetworkPolicy
+metadata:
+  name: quantum-secure-policy
+spec:
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        securityLevel: "quantum"
+    ports:
+    - protocol: TCP
+      port: 8443
+    - protocol: UDP
+      port: 4789
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        component: "edge-gateway"
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+apiVersion: submariner.io/v1
+kind: IPSecPSK
+metadata:
+  name: nuzon-ipsec-psk
+spec:
+  psk: "{{ .Values.ipsecPSK | b64enc }}"
+  reuseInterval: 3600
+  ikeLifeTime: 8h
+  childLifeTime: 4h
+  encryptionAlgorithms: ["aes256gcm"]
+  integrityAlgorithms: ["sha256"]
+  dhGroups: ["modp3072"]
+
+---
+apiVersion: submariner.io/v1
+kind: RouteAgent
+metadata:
+  name: nuzon-route-agent
+spec:
+  mtu: 1400
+  airGappedDeployment: false
+  cableDriver: "libreswan"
+  healthCheckEnabled: true
+  networkPlugin: "canal"
+  nodeFirewall: 
+    ingress:
+    - protocol: TCP
+      port: 4800
+    - protocol: UDP
+      port: 4500
+    egress:
+    - protocol: ICMP
+    - protocol: TCP
+      port: 443
+
+---
+apiVersion: helm.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: submariner-operator
+spec:
+  interval: 5m0s
+  chart:
+    spec:
+      chart: submariner-operator
+      version: "1.15.0"
+      sourceRef:
+        kind: HelmRepository
+        name: submariner
+  values:
+    broker:
+      enabled: true
+      namespace: submariner
+      server: "https://broker.nuzon.ai:6443"
+      token: "{{ .Values.brokerToken }}"
+      ca: "/etc/submariner/ca.crt"
+    submariner:
+      cableDriver: libreswan
+      clusterId: "{{ .Values.clusterID }}"
+      clusterCIDR: "{{ .Values.clusterCIDR }}"
+      serviceCIDR: "{{ .Values.serviceCIDR }}"
+      globalCIDR: "{{ .Values.globalCIDR }}"
+      natEnabled: false
+      debug: false
+      healthCheckEnabled: true
+      connectionHealthCheck:
+        enabled: true
+        intervalSeconds: 30
+        maxPacketLossCount: 5
+    serviceAccounts:
+      submariner: "submariner"
+      globalnet: "globalnet"
+    globalnet:
+      enabled: true
+      clusterSize: 65536
