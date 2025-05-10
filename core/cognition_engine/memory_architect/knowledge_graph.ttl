@@ -1,0 +1,128 @@
+@prefix : <https://ontology.nuzon.ai/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix sc: <http://schema.org/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix nz: <https://data.nuzon.ai/entities/> .
+@prefix nzs: <https://data.nuzon.ai/services/> .
+
+# Core Ontology Definitions
+:Agent a owl:Class ;
+    rdfs:subClassOf sc:DigitalDocument ;
+    rdfs:label "AI Agent"@en ;
+    rdfs:comment "Autonomous agent with capabilities and constraints"@en ;
+    owl:equivalentClass [
+        a owl:Restriction ;
+        owl:onProperty :hasCapability ;
+        owl:someValuesFrom :Capability
+    ] .
+
+:Capability a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:label "Agent Capability"@en ;
+    rdfs:comment "Formal description of agent's operational abilities"@en .
+
+:Task a owl:Class ;
+    rdfs:subClassOf prov:Activity ;
+    rdfs:label "Operational Task"@en ;
+    rdfs:comment "Atomic unit of work in multi-agent system"@en .
+
+:hasCapability a owl:ObjectProperty ;
+    rdfs:domain :Agent ;
+    rdfs:range :Capability ;
+    rdfs:label "has capability"@en ;
+    owl:propertyChainAxiom (:hasSubCapability :requiresCapability) .
+
+:performsTask a owl:ObjectProperty ;
+    rdfs:domain :Agent ;
+    rdfs:range :Task ;
+    rdfs:label "performs task"@en ;
+    owl:inverseOf :performedBy .
+
+# Enterprise Extensions
+:Tenant a owl:Class ;
+    rdfs:subClassOf sc:Organization ;
+    rdfs:label "Tenant Organization"@en ;
+    rdfs:comment "Isolated customer environment in multi-tenant system"@en .
+
+:AccessPolicy a owl:Class ;
+    rdfs:subClassOf prov:Policy ;
+    rdfs:label "Data Access Policy"@en ;
+    rdfs:comment "ReBAC policy for cross-tenant data isolation"@en .
+
+# Service Mesh Integration
+:ServiceEndpoint a owl:Class ;
+    rdfs:subClassOf sc:Service ;
+    rdfs:label "Service Endpoint"@en ;
+    rdfs:comment "Network-addressable agent communication channel"@en .
+
+:MessageContract a owl:Class ;
+    rdfs:subClassOf sc:DigitalDocument ;
+    rdfs:label "Communication Contract"@en ;
+    rdfs:comment "Protobuf/AsyncAPI schema with versioning"@en .
+
+# Example Instances
+nz:agent_001 a :Agent ;
+    :hasCapability [
+        a :Capability ;
+        rdfs:label "NaturalLanguageProcessing" ;
+        :maxThroughput "1000 req/sec"^^xsd:string ;
+        :supportedLanguages ( "en" "es" "jp" )
+    ] ;
+    :performsTask nz:task_456 ;
+    :assignedToTenant nz:tenant_acme ;
+    :hasDigitalSignature "a7f3d9e2b4..."^^xsd:hexBinary .
+
+nz:task_456 a :Task ;
+    rdfs:label "Real-timeFraudDetection" ;
+    :inputSchema <https://schemas.nuzon.ai/fraud/v1.jsonld> ;
+    :outputSchema <https://schemas.nuzon.ai/fraud-output/v1.jsonld> ;
+    :sla [
+        :maxLatency "150ms"^^xsd:duration ;
+        :successRate "0.9999"^^xsd:decimal
+    ] .
+
+nz:tenant_acme a :Tenant ;
+    sc:name "ACME Corp" ;
+    :accessPolicy [
+        a :AccessPolicy ;
+        :allow [
+            :subject nz:agent_001 ;
+            :action :Read ;
+            :resource nz:dataset_789
+        ]
+    ] .
+
+# Cryptographic Proofs
+[] a prov:Entity ;
+    prov:wasGeneratedBy nz:agent_001 ;
+    prov:generatedAtTime "2024-02-20T15:30:00Z"^^xsd:dateTime ;
+    prov:wasDerivedFrom nz:task_456 ;
+    :merkleRoot "c3f28..."^^xsd:hexBinary ;
+    :zkProof <urn:uv4a78h2h489h24> .
+
+# Temporal Context
+nz:session_xyz a prov:Activity ;
+    prov:startedAtTime "2024-02-20T15:00:00Z"^^xsd:dateTime ;
+    prov:endedAtTime "2024-02-20T15:05:00Z"^^xsd:dateTime ;
+    prov:wasAssociatedWith nz:agent_001 ;
+    :duration "PT5M"^^xsd:duration ;
+    :throughput "850 ops/min"^^xsd:integer .
+
+# Cross-Platform Interop
+<https://schemas.nuzon.ai/fraud/v1.jsonld> a :MessageContract ;
+    rdfs:seeAlso <https://asyncapi.org/> ;
+    :schemaVersion "1.2.0" ;
+    :contentType "application/json" ;
+    :encryptionProtocol "ML-KEM-768" .
+
+# Version Control
+nz:kg_version_1 a owl:Ontology ;
+    owl:versionInfo "1.0.0" ;
+    dct:creator <https://nuzon.ai> ;
+    dct:issued "2024-02-20"^^xsd:date .
