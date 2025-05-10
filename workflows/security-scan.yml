@@ -1,0 +1,188 @@
+name: Nuzon AI Security Validation
+
+on:
+  push:
+    branches: [ "main", "release/**" ]
+    paths:
+      - '**.go'
+      - '**.rs'
+      - '**.py'
+      - '**.cpp'
+  schedule:
+    - cron: '0 0 * * 1' # Weekly security audit
+
+env:
+  ARTIFACT_DIR: security-reports
+  SCAN_TIMEOUT: 3600 # 1 hour
+  ZAP_API: http://localhost:8080
+  SEMGREP_CONFIG: .semgrep.yml
+
+jobs:
+  sast-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        lang: [go, rust, python, cpp]
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        sparse-checkout: |
+          /*
+          !**/vendor/
+          
+    - name: Setup Analysis Tools
+      run: |
+        case "${{ matrix.lang }}" in
+          go)
+            go install github.com/securego/gosec/v2/cmd/gosec@latest
+            ;;
+          rust)
+            cargo install cargo-audit
+            ;;
+          python)
+            pip install bandit semgrep
+            ;;
+          cpp)
+            sudo apt-get install cppcheck
+            ;;
+        esac
+
+    - name: Run Language-specific SAST
+      shell: bash
+      run: |
+        case "${{ matrix.lang }}" in
+          go)
+            gosec -exclude-generated -tests -severity high -confidence high \
+              -fmt sarif -out ${{ env.ARTIFACT_DIR }}/gosec-${{ github.sha }}.sarif ./...
+            ;;
+          rust)
+            cargo audit --format json --output ${{ env.ARTIFACT_DIR }}/rust-audit-${{ github.sha }}.json
+            ;;
+          python)
+            semgrep --config auto --error --metrics=off \
+              --sarif > ${{ env.ARTIFACT_DIR }}/semgrep-${{ github.sha }}.sarif
+            bandit -r . -f sarif -o ${{ env.ARTIFACT_DIR }}/bandit-${{ github.sha }}.sarif
+            ;;
+          cpp)
+            cppcheck --enable=all --project=build/compile_commands.json \
+              --output-file=${{ env.ARTIFACT_DIR }}/cppcheck-${{ github.sha }}.xml
+            ;;
+        esac
+      continue-on-error: true
+
+    - name: Upload SARIF Reports
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: ${{ env.ARTIFACT_DIR }}/*.sarif
+        checkout-path: ${{ github.workspace }}
+
+  dast-scanning:
+    name: Dynamic Analysis
+    runs-on: ubuntu-22.04
+    needs: sast-analysis
+    services:
+      zap:
+        image: owasp/zap2docker-stable
+        ports: [8080:8080]
+        options: --user root -e XDG_DATA_HOME=/tmp/zap
+    steps:
+    - name: Initialize ZAP
+      run: |
+        docker exec zap zap.sh -daemon -port 8080 -host 0.0.0.0 \
+          -config api.disablekey=true -config scanner.attackOnStart=true
+        
+    - name: Full API Scan
+      uses: zaproxy/actions-full-scan@v0.5.0
+      with:
+        target: 'http://localhost:8080'
+        format: sarif
+        output: ${{ env.ARTIFACT_DIR }}/zap-scan.sarif
+        
+    - name: Network Probe
+      run: |
+        nmap -sV -T4 -oX ${{ env.ARTIFACT_DIR }}/nmap-scan.xml \
+          -p 1-65535 localhost
+        
+    - name: TLS Validation
+      uses: gradle/wrapper-validation-action@v1
+      with:
+        domains: |
+          nuzon.ai
+          api.nuzon.ai
+        check_ocsp: true
+        min_tls_version: TLSv1.3
+        
+  sca-scanning:
+    name: Dependency Analysis
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: SBOM Generation
+      uses: anchore/sbom-action@v0.13
+      with:
+        format: 'spdx,cyclonedx'
+        output: ${{ env.ARTIFACT_DIR }}/sbom
+      
+    - name: Vulnerability Scan
+      uses: dependency-check/action@v1
+      with:
+        project: 'NuzonAI'
+        scanPath: '.'
+        format: 'SARIF'
+        outputDirectory: ${{ env.ARTIFACT_DIR }}
+        additionalArguments: '--enableExperimental --scan **/*.go **/*.rs **/*.py'
+        
+    - name: Container Analysis
+      uses: aquasecurity/trivy-action@0.13
+      with:
+        image-ref: ghcr.io/${{ github.repository }}
+        format: 'sarif'
+        scanners: 'vuln,config,secret'
+        exit-code: 0
+        severity: 'CRITICAL,HIGH'
+        output: ${{ env.ARTIFACT_DIR }}/trivy.sarif
+        
+  post-scan:
+    name: Security Post-Processing
+    runs-on: ubuntu-22.04
+    needs: [sast-analysis, dast-scanning, sca-scanning]
+    steps:
+    - name: Aggregate Results
+      run: |
+        jq -s 'add' ${{ env.ARTIFACT_DIR }}/*.sarif > combined.sarif
+        echo "SUMMARY=$(jq '.runs[].results[] | .message.text' combined.sarif)" >> $GITHUB_ENV
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          ${{ env.ARTIFACT_DIR }}/**
+          combined.sarif
+        
+    - name: Fail on Critical Issues
+      if: contains(env.SUMMARY, 'critical')
+      run: |
+        echo "CRITICAL_VULNERABILITIES=1" >> $GITHUB_ENV
+        exit 1
+        
+    - name: Compliance Check
+      uses: boxboat/audit-action@v1
+      with:
+        frameworks: 'gdpr,pcidss,hipaa'
+        config: .compliance.yml
+        
+    - name: Notify Security Team
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SECURITY_SLACK_WEBHOOK }}
+        SLACK_COLOR: danger
+        SLACK_MESSAGE: "Security scan failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
