@@ -1,0 +1,299 @@
+name: Nuzon AI Full-Stack Pipeline
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+    paths-ignore: [ "docs/**", "**.md" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  TF_VERSION: 1.5.7
+  GO_VERSION: 1.21
+  RUST_VERSION: stable
+
+jobs:
+  code-validation:
+    name: Static Analysis & Linting
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        submodules: recursive
+
+    - name: Multi-language Setup
+      uses: actions/setup@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        rust: ${{ env.RUST_VERSION }}
+        python-version: "3.10"
+
+    - name: Semantic Analysis
+      uses: step-security/hardened-checkout@v2
+      with:
+        protocol: hardened
+
+    - name: Cross-language Linting
+      shell: bash
+      run: |
+        # Go
+        golangci-lint run --config .golangci.yml --out-format=github-actions ./...
+        
+        # Rust
+        cargo clippy --all-targets --all-features -- -D warnings
+        
+        # Python
+        flake8 . --config .flake8
+        black --check --diff .
+        
+        # C/C++
+        find . -name '*.cpp' -o -name '*.hpp' | xargs clang-tidy -p build/
+
+  security-scanning:
+    name: Security Validation
+    runs-on: ubuntu-22.04
+    needs: code-validation
+    strategy:
+      matrix:
+        scan-type: [SAST, DAST, SCA]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Dependency Scan
+      if: matrix.scan-type == 'SCA'
+      uses: shiftleft/scan-action@v2
+      with:
+        type: 'depscan'
+        build: 'true'
+        tech: 'go,rust,python,cpp'
+        fail: 'true'
+
+    - name: SAST Analysis
+      if: matrix.scan-type == 'SAST'
+      uses: shiftleft/scan-action@v2
+      with:
+        type: 'sast'
+        build: 'true'
+        lang: 'go,rust,python,cpp'
+        config: .sast.yml
+
+    - name: Container Scan
+      uses: aquasecurity/trivy-action@0.13
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        format: 'sarif'
+        exit-code: 1
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
+  build-artifacts:
+    name: Multi-Architecture Build
+    runs-on: ubuntu-22.04
+    needs: [code-validation, security-scanning]
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Docker Buildx
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./deployments/docker/agent.Dockerfile
+        platforms: linux/${{ matrix.arch }}
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        push: ${{ github.ref == 'refs/heads/main' }}
+
+    - name: Rust Release Build
+      shell: bash
+      run: |
+        cargo build --release --target-dir target/rust
+        strip target/rust/release/nuzon-agent
+        
+    - name: Go Binary Build
+      env:
+        CGO_ENABLED: 0
+      run: |
+        go build -v -trimpath -ldflags "-s -w" -o bin/nuzon-controller ./cmd/agent-controller
+
+  unit-test:
+    name: Cross-language Testing
+    runs-on: ubuntu-22.04
+    needs: build-artifacts
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ["5432:5432"]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Go Tests
+      run: |
+        go test -race -coverprofile=cover.out -v ./pkg/...
+        
+    - name: Rust Tests
+      run: |
+        cargo test --all-features -- --test-threads=4
+        
+    - name: Python Tests
+      run: |
+        pytest -n auto --cov=./ --cov-report=xml
+        
+    - name: C++ Tests
+      run: |
+        mkdir build && cd build
+        cmake -DBUILD_TESTS=ON ..
+        ctest --output-on-failure
+
+  integration-test:
+    name: System Validation
+    runs-on: ubuntu-22.04
+    needs: unit-test
+    env:
+      KUBECONFIG: /tmp/kubeconfig
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Start KinD Cluster
+      uses: helm/kind-action@v1
+      with:
+        version: v0.20.0
+        cluster_name: nuzon-test
+        
+    - name: Deploy Test Stack
+      run: |
+        kubectl apply -f ./deployments/kubernetes/test-manifests/
+        kubectl wait --for=condition=ready pod -l app=nuzon-test
+        
+    - name: Run Integration Suite
+      uses: newrelic/newrelic-integration-lifecycle-action@v1
+      with:
+        test_type: integration
+        test_path: ./test/integration
+        fail_on_timeout: true
+
+  deploy-staging:
+    name: Staging Deployment
+    runs-on: ubuntu-22.04
+    needs: integration-test
+    environment: staging
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: AWS EKS Deployment
+      uses: hashicorp/terraform-github-actions@2.0
+      with:
+        tf_actions_version: ${{ env.TF_VERSION }}
+        tf_actions_working_dir: deployments/kubernetes/terraform/aws_eks
+        tf_actions_variables: |
+          cluster_version="1.27"
+          node_count=5
+        tf_actions_target: apply
+        
+    - name: K8s Manifest Apply
+      uses: azure/k8s-deploy@v4
+      with:
+        namespace: nuzon-staging
+        manifests: |
+          ./deployments/kubernetes/helm/
+        strategy: canary
+        
+    - name: Edge Fleet Update
+      run: |
+        ansible-playbook -i inventories/staging-edge deploy_edge.yml
+        k3sup join --ip ${{ secrets.EDGE_NODE_IP }} --server-ip ${{ secrets.K3S_SERVER }}
+
+  compliance-check:
+    name: Policy Validation
+    runs-on: ubuntu-22.04
+    needs: deploy-staging
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: OPA Policy Evaluation
+      uses: open-policy-agent/opa-action@v2
+      with:
+        policy: ./enterprise/compliance_as_code/
+        data: ./test/compliance/input.json
+        format: json
+        
+    - name: GDPR Validation
+      run: |
+        ./scripts/compliance_check.sh gdpr --strict
+        
+    - name: SOC2 Audit
+      uses: mitre/inspec-action@v1
+      with:
+        profile: ./docs/COMPLIANCE/soc2
+        reporter: json
+        
+  production-release:
+    name: Production Rollout
+    runs-on: ubuntu-22.04
+    needs: compliance-check
+    environment: production
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Multi-cloud Deployment
+      uses: hashicorp/terraform-github-actions@2.0
+      with:
+        tf_actions_working_dir: deployments/kubernetes/terraform
+        tf_actions_target: apply
+        tf_actions_variables: |
+          environment="prod"
+          cloud_provider="aws,gcp,azure"
+        
+    - name: ArgoCD Sync
+      uses: argoproj/argo-cd-github-action@v1
+      with:
+        argocd-server: ${{ secrets.ARGOCD_SERVER }}
+        argocd-token: ${{ secrets.ARGOCD_TOKEN }}
+        command: sync ./deployments/kubernetes/argocd-apps
+        
+    - name: Chaos Validation
+      uses: chaostoolkit/chaostoolkit-action@v1
+      with:
+        experiment_file: ./internal/test/chaos/prod_validation.json
+
+  post-release:
+    name: Post-Deploy Tasks
+    runs-on: ubuntu-22.04
+    needs: production-release
+    if: always()
+    steps:
+    - name: Security Dashboard
+      uses: shiftleft/scan-action@v2
+      with:
+        type: report
+        build: 'false'
+        output: security-report.sarif
+        
+    - name: Performance Metrics
+      uses: prometheus/prometheus-github-action@v1
+      with:
+        scrape_interval: 30s
+        targets: ${{ secrets.PROMETHEUS_TARGETS }}
+        
+    - name: Doc Generation
+      run: |
+        swagger generate spec -o ./api/openapi/swagger.yaml
+        doxygen ./docs/Doxyfile
+        
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_ALERTS }}
+        SLACK_MESSAGE: "Deployment ${{ job.status }} for ${{ github.sha }}"
