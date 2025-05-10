@@ -1,0 +1,299 @@
+openapi: 3.0.3
+info:
+  title: Nuzon AI Enterprise Agent Framework
+  version: 3.4.0
+  description: |
+    Enterprise-grade API for managing and orchestrating AI agents
+    with built-in security, observability, and compliance controls
+  contact:
+    name: Nuzon Security Team
+    email: api-security@nuzon.ai
+    url: https://api.nuzon.ai/support
+  license:
+    name: Proprietary
+    url: https://api.nuzon.ai/license
+
+servers:
+  - url: https://api.nuzon.ai/v3
+    description: Production API cluster
+  - url: https://sandbox.api.nuzon.ai/v3
+    description: Sandbox environment
+
+security:
+  - OAuth2:
+      - agent.rw
+      - task.execute
+      - audit.read
+  - APIKey: []
+  
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.nuzon.ai/oauth2/auth
+          tokenUrl: https://auth.nuzon.ai/oauth2/token
+          scopes:
+            agent.rw: Full agent management
+            task.execute: Task execution rights
+            audit.read: Audit log access
+    APIKey:
+      type: apiKey
+      name: X-API-Key
+      in: header
+
+  schemas:
+    Agent:
+      type: object
+      required:
+        - id
+        - capabilities
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Capability'
+        status:
+          type: string
+          enum: [ACTIVE, STANDBY, MAINTENANCE]
+        last_heartbeat:
+          type: string
+          format: date-time
+        qos_profile:
+          $ref: '#/components/schemas/QoSProfile'
+
+    Task:
+      type: object
+      required:
+        - task_id
+        - workflow
+        - priority
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        workflow:
+          $ref: '#/components/schemas/WorkflowDefinition'
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 100
+        deadline:
+          type: string
+          format: date-time
+        constraints:
+          $ref: '#/components/schemas/ResourceConstraints'
+
+    AuditLog:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        principal:
+          type: string
+        action:
+          type: string
+        resource:
+          type: string
+        status:
+          type: string
+          enum: [SUCCESS, FAILURE]
+        signature:
+          type: string
+          description: Cryptographic audit signature
+
+paths:
+  /agents:
+    get:
+      tags: [Agent Management]
+      summary: List registered agents
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/filterStatus'
+      responses:
+        200:
+          description: Agent list retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Agent'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Agent Management]
+      summary: Register new agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Agent'
+      responses:
+        201:
+          description: Agent registered
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of created agent
+        400:
+          $ref: '#/components/responses/BadRequest'
+
+  /tasks:
+    post:
+      tags: [Task Orchestration]
+      summary: Submit new workflow task
+      security:
+        - OAuth2: [task.execute]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        202:
+          description: Task accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id:
+                    type: string
+                    format: uuid
+                  monitor_url:
+                    type: string
+                    format: uri
+
+  /audit:
+    get:
+      tags: [Security]
+      summary: Retrieve audit logs
+      security:
+        - OAuth2: [audit.read]
+      parameters:
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+      responses:
+        200:
+          description: Audit records retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/AuditLog'
+
+components:
+  parameters:
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    pageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        default: 100
+        maximum: 1000
+    filterStatus:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [ACTIVE, STANDBY, MAINTENANCE]
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
+
+    QoSProfile:
+      type: object
+      properties:
+        max_latency:
+          type: number
+          format: float
+        min_throughput:
+          type: integer
+        priority_level:
+          type: integer
+          enum: [1, 2, 3]
+
+    ResourceConstraints:
+      type: object
+      properties:
+        cpu_cores:
+          type: integer
+        memory_gb:
+          type: number
+        gpu_type:
+          type: string
+          enum: [T4, A100, H100]
+
+    WorkflowDefinition:
+      type: object
+      properties:
+        dag:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowNode'
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+
+    WorkflowNode:
+      type: object
+      properties:
+        node_id:
+          type: string
+        depends_on:
+          type: array
+          items:
+            type: string
+        agent_type:
+          type: string
+        parameters:
+          type: object
