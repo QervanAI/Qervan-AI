@@ -1,0 +1,103 @@
+name: Dependency Vulnerability Analysis
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+    paths:
+      - '**go.mod'
+      - '**Cargo.toml'
+      - '**requirements.txt'
+      - '**package.json'
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  ARTIFACT_DIR: .dependency-reports
+  ODC_VERSION: 8.2.1
+  JAVA_OPTS: -Xmx4g -Xms2g
+
+jobs:
+  dependency-scan:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        language: [go, rust, python, js]
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        sparse-checkout: |
+          /*
+          !**/test/
+          !**/vendor/
+    
+    - name: Dependency Check Setup
+      uses: dependency-check/action@v1.4
+      with:
+        project: 'NuzonAI-${{ matrix.language }}'
+        path: .
+        format: 'ALL'
+        output: ${{ env.ARTIFACT_DIR }}
+        suppressionFile: .github/suppressions.xml
+        scanArguments: |
+          --enableExperimental
+          --failOnCVSS 7
+          --log ${{ env.ARTIFACT_DIR }}/odc.log
+          --disableYarnAudit
+          --disableNodeAudit
+          --disableNodeJS
+          --disablePyDist
+          --disablePyPkg
+          --disableBundleAudit
+          --scan ${{ matrix.language == 'go' && '**/go.sum' || '' }}
+          --scan ${{ matrix.language == 'rust' && '**/Cargo.lock' || '' }}
+          --scan ${{ matrix.language == 'python' && '**/requirements*.txt' || '' }}
+          --scan ${{ matrix.language == 'js' && '**/package-lock.json' || '' }}
+    
+    - name: Generate SBOM
+      if: matrix.language == 'go'
+      run: |
+        cyclonedx-gomod mod -output ${{ env.ARTIFACT_DIR }}/bom.xml
+        cyclonedx-py -r -o ${{ env.ARTIFACT_DIR }}/py-bom.xml
+    
+    - name: Vulnerability Post-Processing
+      shell: bash
+      run: |
+        # Critical severity gate
+        critical_count=$(grep -c '"severity": "CRITICAL"' ${{ env.ARTIFACT_DIR }}/dependency-check-report.json)
+        if [ $critical_count -gt 0 ]; then
+          echo "CRITICAL_VULN_COUNT=$critical_count" >> $GITHUB_ENV
+          exit 1
+        fi
+        
+        # Create simplified report
+        jq '[.dependencies[] | select(.vulnerabilities != null) | {
+          package: .fileName, 
+          version: .version,
+          vulnerabilities: [.vulnerabilities[] | {
+            id: .name, 
+            severity: .severity, 
+            cvssScore: .cvssv3.baseScore,
+            description: .description
+          }]
+        }]' ${{ env.ARTIFACT_DIR }}/dependency-check-report.json > ${{ env.ARTIFACT_DIR }}/filtered-report.json
+    
+    - name: Upload Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-reports-${{ matrix.language }}
+        path: |
+          ${{ env.ARTIFACT_DIR }}/**
+        retention-days: 90
+    
+    - name: Alert Security Team
+      if: failure() && env.CRITICAL_VULN_COUNT > 0
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SECURITY_SLACK_WEBHOOK }}
+        SLACK_COLOR: danger
+        SLACK_MESSAGE: "[${{ matrix.language }}] Critical dependencies detected: ${{ env.CRITICAL_VULN_COUNT }} issues"
