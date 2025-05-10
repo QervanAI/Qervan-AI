@@ -1,0 +1,199 @@
+nuzon-ai/
+├── .github/
+│   ├── workflows/
+│   │   ├── ci-cd.yml              # Full-stack CI/CD pipeline
+│   │   ├── security-scan.yml      # SAST/DAST scanning
+│   │   └── dependency-check.yml
+│   └── ISSUE_TEMPLATE/
+│       ├── BUG_REPORT.md
+│       └── FEATURE_REQUEST.md
+├── cmd/
+│   ├── agent-controller/          # Main entrypoint
+│   │   └── main.go
+│   ├── orchestrator/              # Coordination engine
+│   │   └── main.rs
+│   └── security-proxy/            # Zero-trust gateway
+│       └── main.cpp
+├── core/
+│   ├── cognition_engine/
+│   │   ├── llm_orchestrator/
+│   │   │   ├── mistral_integration.py    # Multi-LLM routing
+│   │   │   └── routing_controller.rs     # Performance-optimized routing
+│   │   ├── memory_architect/
+│   │   │   ├── memgpt_adapter.go         # Long-term memory
+│   │   │   └── knowledge_graph.ttl       # Semantic web
+│   │   └── neurosymbolic/
+│   │       ├── planner.clp                # Answer Set Programming
+│   │       └── tensor_planner.py          # Neural-symbolic integration
+│   └── quantum_layer/
+│       ├── qkd_protocols/
+│       │   ├── bb84_emulator.c            # Quantum key simulation
+│       │   └── e91_quantum.rs             # Entanglement protocols
+│       └── crypto_agility/
+│           ├── nist_rotator.go            # Cryptographic migration
+│           └── hybrid_schemes.py          # Classical+quantum hybrid
+├── services/
+│   ├── multi_cloud_mesh/
+│   │   ├── cluster_federation/
+│   │   │   ├── karmada_config.yaml       # Multi-cluster management
+│   │   │   └── submariner.helm           # Cross-cloud networking
+│   │   └── service_sync/
+│   │       ├── aws_eks.go                # Amazon EKS integration
+│   │       └── azure_arc.py              # Azure Arc controller
+│   └── edge_fabric/
+│       ├── iot_bridge/
+│       │   ├── opcua_adapter.cpp         # Industrial protocol
+│       │   └── modbus_proxy.rs           # SCADA integration
+│       └── federated_learning/
+│           ├── flower_adaptor.py         # Federated framework
+│           └── homomorphic.py            # Encrypted aggregation
+├── platform/
+│   ├── market_mechanism/
+│   │   ├── auction_engine/
+│   │   │   ├── vcg_auction.clar         # Truthful mechanism
+│   │   │   └── combinatorial.py         # Bid processing
+│   │   └── reputation_system/
+│   │       ├── eigen_trust.rs            # Reputation model
+│   │       └── proof_of_work.c           # Anti-sybil
+│   └── data_plane/
+│       ├── stream_processor/
+│       │   ├── flink_job.java            # Real-time processing
+│       │   └── spark_dag.py             # Batch analytics
+│       └── vector_engine/
+│           ├── qdrant_config.toml        # Vector DB setup
+│           └── milvus_adapter.go         # Alternative store
+├── enterprise/
+│   ├── compliance_as_code/
+│   │   ├── gdpr_enforcer.rego           # Policy automation
+│   │   └── soc2_monitor.py              # Compliance audit
+│   └── legacy_gateway/
+│       ├── mainframe/
+│       │   ├── cics_adapter.cob         # COBOL integration
+│       │   └── jes2_bridge.go           # JES2 control
+│       └── protocol_reviver/
+│           ├── edi_parser.rs            # EDIFACT parser
+│           └── x400_proxy.cpp           # Legacy email
+├── pkg/
+│   ├── agent/
+│   │   ├── core/                       # Agent logic
+│   │   │   ├── lifecycle.go            # State management
+│   │   │   ├── capability.rs           # Skill modules
+│   │   │   └── identity.c              # UUID generation
+│   │   ├── communication/
+│   │   │   ├── kyber/                  # Post-quantum
+│   │   │   │   └── handshake.rs
+│   │   │   ├── grpc/                   # gRPC services
+│   │   │   │   └── agent.proto
+│   │   │   └── pubsub/                 # Event streaming
+│   │   │       └── nats.go
+│   │   └── policy/                     # RBAC
+│   │       └── opa.rego                 # Open Policy
+│   ├── orchestration/
+│   │   ├── symbolic/                   # Logic planning
+│   │   │   ├── planner.py              # AND/OR trees
+│   │   │   └── verifier.hs             # Formal methods
+│   │   └── neural/                     # ML coordination
+│   │       ├── transformer/            # Path prediction
+│   │       │   └── model.pt
+│   │       └── reinforcement/          # RL
+│   │           └── dqn.py
+│   ├── security/
+│   │   ├── enclave/                    # Trusted execution
+│   │   │   ├── sgx_impl.cpp            # Intel SGX
+│   │   │   └── tee_verify.asm
+│   │   ├── audit/                      # Compliance
+│   │   │   ├── auditor.go
+│   │   │   └── gdpr_check.py
+│   │   └── keymgmt/                    # Cryptography
+│   │       ├── hsm_integration.rs
+│   │       └── cert_rotation.sh
+│   └── integration/
+│       ├── adapters/                   # Connectors
+│       │   ├── sap/
+│       │   │   └── idoc_adapter.py
+│       │   ├── oracle/
+│       │   │   └── plsql_wrapper.go
+│       │   └── rest/                   # API gateway
+│       │       └── openapi.yaml
+│       └── discovery/                  # Auto-connect
+│           ├── schema_learner.py
+│           └── protocol_buffer.fbs
+├── deployments/
+│   ├── kubernetes/                    # Production K8s
+│   │   ├── helm/
+│   │   │   └── values.yaml
+│   │   ├── operator/                  # Custom controllers
+│   │   │   └── agent_operator.go
+│   │   ├── multi_cluster/
+│   │   │   ├── cluster_selectors.yaml
+│   │   │   └── federation_controller.go
+│   │   └── terraform/                 # IaC
+│   │       └── aws_eks.tf
+│   └── edge/
+│       ├── docker/
+│       │   ├── agent.Dockerfile        # Minimal container
+│       │   └── enclave.Dockerfile     # SGX-enabled
+│       └── k3s_config/
+│           └── k3s_join_token.sh       # Edge bootstrap
+├── developer_experience/
+│   ├── sdk/
+│   │   ├── python/
+│   │   │   └── nuzon/
+│   │   │       ├── client.py          # Python SDK
+│   │   │       └── types.py
+│   │   └── rust/
+│   │       └── nuzon-rs/
+│   │           ├── src/lib.rs         # Rust bindings
+│   │           └── macros.rs
+│   └── playground/
+│       ├── jupyter/
+│       │   └── agent_sandbox.ipynb    # Notebook
+│       └── katacoda/
+│           └── tutorial_scenario.md  # Learning
+├── internal/
+│   ├── config/                        # Dynamic
+│   │   ├── viper.go
+│   │   └── feature_flags.toml
+│   ├── monitoring/                    # Observability
+│   │   ├── prometheus/                # Metrics
+│   │   │   └── custom_metrics.py
+│   │   ├── loki/                     # Logging
+│   │   │   └── log_parser.rs
+│   │   └── tracing/                  # Distributed
+│   │       └── jaeger_config.yaml
+│   └── test/                         # Testing
+│       ├── load/                     # Performance
+│       │   └── k6_test.js
+│       ├── chaos/                    # Chaos
+│       │   └── pod_killer.go
+│       └── verification/             # Formal
+│           └── tla_plus.tla
+├── api/                              # API contracts
+│   ├── protobuf/                     # gRPC
+│   │   └── agent_service.proto
+│   └── openapi/                      # REST
+│       └── swagger.yaml
+├── scripts/                          # Utilities
+│   ├── benchmark.sh                  # Perf test
+│   ├── key_rotation.py               # Crypto
+│   └── compliance_check.sh          # Regulation
+├── docs/
+│   ├── ARCHITECTURE.md               # Design
+│   ├── SECURITY.md                   # Crypto
+│   ├── ONBOARDING.md                 # Guide
+│   └── COMPLIANCE/                   # Docs
+│       ├── GDPR_CHECKLIST.md
+│       └── ISO27001_AUDIT.md
+├── third_party/                      # Dependencies
+│   ├── licenses/                     # Tracking
+│   │   └── dependency.csv
+│   └── patches/                      # Security
+│       └── openssl_cve2023.patch
+├── .gitattributes
+├── .gitignore
+├── LICENSE                          # Apache 2.0
+├── Makefile                         # Build
+├── go.mod                           # Go
+├── Cargo.toml                       # Rust
+├── requirements.txt                 # Python
+└── README.md                        # Overview
