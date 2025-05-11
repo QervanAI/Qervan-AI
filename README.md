@@ -7,7 +7,7 @@
 [![TPM 2.0](https://img.shields.io/badge/Hardware-TPM%202.0%20Required-important)](https://trustedcomputinggroup.org)
 
 **Mission-Critical AI Agent Framework**  
-*Version 3.4.0 | Multi-Cloud Certified | [Interactive Demo](https://demo.nuzon.ai)*
+*Version 3.4.0 | Multi-Cloud Certified 
 
 [![Website](https://img.shields.io/badge/Website-Visit-blue)](https://nuzonai.com/)
 [![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/NuzonAIAGENT)
