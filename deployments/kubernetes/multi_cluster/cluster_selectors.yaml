@@ -1,0 +1,126 @@
+# cluster_selectors.yaml - Enterprise Multi-Cluster Resource Orchestration
+apiVersion: scheduling.nuzon.ai/v1beta1
+kind: ClusterSelector
+metadata:
+  name: nuzon-ai-prod-selectors
+  labels:
+    env: prod
+    app.kubernetes.io/part-of: nuzon-ai-platform
+spec:
+  clusterGroups:
+    primary:
+      cloudProvider: gcp
+      regions:
+        - us-west1
+        - us-central1
+      labels:
+        tier: frontend
+        workload-type: latency-sensitive
+      resourceRequirements:
+        cpu: 16
+        memory: 64Gi
+        gpu:
+          type: nvidia-tesla-t4
+          count: 4
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: nuzon-ai
+          effect: NoSchedule
+
+    analytics:
+      cloudProvider: aws
+      regions:
+        - eu-west-1
+      labels:
+        tier: backend
+        workload-type: batch-processing
+      storageClasses:
+        - ebs-sc
+        - efs-sc
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["spark", "flink"]
+              topologyKey: kubernetes.io/hostname
+
+  globalConstraints:
+    maxReplicaSpread: 25%
+    minAvailableZones: 3
+    failureDomains:
+      - zone
+      - host
+    priorityClassName: nuzon-critical
+    podDisruptionBudget:
+      minAvailable: 80%
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/instance: nuzon-ai
+
+  autoScaling:
+    clusterAutoscaler:
+      enabled: true
+      scaleDownDelay: 30m
+      utilizationThresholds:
+        cpu: 60
+        memory: 70
+        gpu: 85
+    hpaDefaults:
+      minReplicas: 3
+      maxReplicas: 100
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 70
+
+  securityProfile:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+    networkPolicies:
+      - name: inter-agent-communication
+        policyTypes:
+          - Ingress
+          - Egress
+        ingress:
+          - from:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: nuzon-ai
+        egress:
+          - to:
+              - ipBlock:
+                  cidr: 10.200.0.0/16
+
+  observability:
+    monitoringInterval: 30s
+    scrapeLabels:
+      - "app.kubernetes.io/instance"
+      - "nuzon.ai/agent-version"
+    logRetention:
+      application: 30d
+      audit: 1y
+      debug: 7d
+    tracingSamplingRate: 5%
+
+  backupConfig:
+    snapshotInterval: 6h
+    retentionPolicy:
+      daily: 7
+      weekly: 4
+      monthly: 12
+    excludedResources:
+      - secrets
+      - ephemeral-storage
