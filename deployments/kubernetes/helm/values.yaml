@@ -1,0 +1,183 @@
+# values.yaml - Enterprise Kubernetes Production Configuration
+global:
+  environment: prod
+  cluster:
+    name: nuzon-ai-prod
+    region: us-west2
+    multiAZ: true
+    topologySpread: 
+      maxSkew: 2
+      zones: 3
+  security:
+    pspEnabled: true
+    podSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 3000
+      fsGroup: 2000
+    networkPolicy: 
+      enabled: true
+      ingress:
+        - from: []
+      egress:
+        - to: []
+  monitoring:
+    prometheus: true
+    grafana: true
+    loki: true
+    metricsPort: 9090
+
+app:
+  replicaCount: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 15%
+  autoscaling:
+    enabled: true
+    minReplicas: 6
+    maxReplicas: 30
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 70
+      - type: Resource
+        resource:
+          name: memory
+          target:
+            type: Utilization
+            averageUtilization: 85
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "2"
+      memory: 8Gi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-type
+                operator: In
+                values:
+                  - ai-accelerated
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app: nuzon-ai
+          topologyKey: kubernetes.io/hostname
+
+database:
+  enabled: true
+  type: postgresql-ha
+  replicas: 3
+  storage:
+    size: 2Ti
+    class: premium-rwo
+    encrypted: true
+  resources:
+    limits:
+      cpu: "8"
+      memory: 32Gi
+    requests:
+      cpu: "4" 
+      memory: 16Gi
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 30d
+    s3:
+      bucket: nuzon-ai-backups
+      endpoint: s3.dualstack.us-west-2.amazonaws.com
+
+messaging:
+  nats:
+    cluster:
+      enabled: true
+      size: 5
+    jetstream:
+      enabled: true
+      storage:
+        size: 1Ti
+    tls:
+      secretName: nats-tls-cert
+      clientAuth: require
+
+networking:
+  ingress:
+    className: nginx-prod
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: 50m
+      nginx.ingress.kubernetes.io/service-upstream: "true"
+    hosts:
+      - host: api.nuzon.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: nuzon-tls-cert
+        hosts:
+          - api.nuzon.ai
+  service:
+    type: LoadBalancer
+    annotations: 
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+      service.beta.kubernetes.io/aws-load-balancer-internal: "false"
+
+storage:
+  encryptedVolumes: true
+  csiDriver: ebs.csi.aws.com
+  storageClasses:
+    - name: premium-rwo
+      parameters:
+        type: io2
+        iops: "10000"
+        encrypted: "true"
+
+security:
+  vault:
+    enabled: true
+    addr: https://vault.nuzon.ai:8200
+    role: nuzon-ai-prod
+  certManager:
+    clusterIssuer: letsencrypt-prod
+    renewalWindow: 720h # 30 days
+
+monitoring:
+  prometheus:
+    retention: 30d
+    persistentVolume:
+      size: 500Gi
+  grafana:
+    adminPassword: vault:nuzon-ai/grafana-admin
+  loki:
+    storage:
+      bucket: nuzon-ai-logs
+      region: us-west2
+
+backup:
+  velero:
+    enabled: true
+    schedule:
+      - name: daily-full
+        schedule: "0 3 * * *"
+        ttl: 720h
+        includeNamespaces:
+          - nuzon-ai
+    backupLocation:
+      provider: aws
+      bucket: nuzon-ai-velero
+      region: us-west2
+
+updatePolicy:
+  approvalMode: Manual
+  maintenanceWindow: 
+    day: Sunday
+    start: 01:00
+    duration: 4h
