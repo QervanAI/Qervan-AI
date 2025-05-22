@@ -1,4 +1,4 @@
-# Nuzon AI Enterprise Deployment Guide
+# Cirium AI Enterprise Deployment Guide
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@
 
 ### Licenses:
 
-- Nuzon AI Enterprise License Key
+- Cirium AI Enterprise License Key
 - HSM Provisioning Certificates (PKCS#11)
 
 ## 3. Infrastructure Provisioning
@@ -48,7 +48,7 @@
 ### 3.1 Kubernetes Cluster
 ```
 # Initialize Terraform 
-terraform init -backend-config="bucket=nuzon-tfstate" 
+terraform init -backend-config="bucket=cirium-tfstate" 
 
 # Provision EKS Cluster
 terraform apply -var="cluster_version=1.28" \
@@ -76,10 +76,10 @@ spec:
 
 ```
 # Add Nuzon Repo
-helm repo add nuzon https://charts.nuzon.ai
+helm repo add cirium https://charts.cirium.ai
 
 # Install Core Services
-helm install nuzon-core nuzon/enterprise-platform \
+helm install nuzon-core cirium/enterprise-platform \
   --values production-values.yaml \
   --set global.encryptionKey=$(vault read nuzon-secrets/encryption-key)
 ```
@@ -101,7 +101,7 @@ module "postgresql" {
 hsm-toolkit init \
   --model luna7 \
   --partitions 3 \
-  --policy-file nuzon-hsm-policy.json
+  --policy-file cirium-hsm-policy.json
 ```
 
 ### 5.2 SGX Enclaves
@@ -117,7 +117,7 @@ docker buildx build --platform linux/amd64 \
 ### 6.1 Deploy Agents
 ```
 # agent_deployment.yaml
-apiVersion: ai.nuzon.io/v1beta1
+apiVersion: ai.cirium.io/v1beta1
 kind: AgentPool
 metadata:
   name: financial-agents
@@ -155,7 +155,7 @@ compliance {
 ### 7.2 SOC2 Auditing
 ```
 # Run Compliance Scan
-nuzon-cli audit soc2 \
+cirium-cli audit soc2 \
   --checklist nist-800-53 \
   --output-format=json > audit-report.json
 ```
@@ -187,7 +187,7 @@ logcli query '{namespace="nuzon-prod"} |= "ERROR"' \
 ### 9.2 Updates
 ```
 # Zero-Downtime Upgrade
-kubectl rollout restart deployment/nuzon-core \
+kubectl rollout restart deployment/cirium-core \
   --timeout=1h \
   --grace-period=300
 ```
@@ -196,7 +196,7 @@ kubectl rollout restart deployment/nuzon-core \
 ### 10.1 Backup
 ```
 # Snapshot Critical Data
-velero backup create nuzon-dr-$(date +%s) \
+velero backup create cirium-dr-$(date +%s) \
   --include-namespaces nuzon-prod \
   --ttl 720h
 ```
@@ -206,7 +206,7 @@ velero backup create nuzon-dr-$(date +%s) \
 # dr_plan.yaml
 steps:
   - name: Restore Control Plane
-    action: helm rollback nuzon-core --version 3.3.2
+    action: helm rollback cirium-core --version 3.3.2
     timeout: 15m
   
   - name: Data Rehydration
@@ -215,7 +215,7 @@ steps:
 
 ### Appendix:
 
-- Nuzon AI Documentation Portal
-- Enterprise Support: support@nuzonai.com
+- Cirium AI Documentation Portal
+- Enterprise Support: support@Cirium.org
 - License: Commercial (Proprietary)
-- © 2025 Nuzon Technologies. Confidential & Proprietary.
+- © 2025 Cirium Technologies. Confidential & Proprietary.
