@@ -4,7 +4,7 @@
 #![warn(clippy::all)]
 
 use std::{net::SocketAddr, sync::Arc, time::Duration};
-use nuzon_core::{
+use cirium_core::{
     config::{load_config, Config},
     coordinator::QuantumCoordinator,
     crypto::postquantum::{KyberKeypair, KyberProvider},
