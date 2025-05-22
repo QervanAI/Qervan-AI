@@ -2,7 +2,7 @@
 global:
   environment: prod
   cluster:
-    name: nuzon-ai-prod
+    name: cirium-ai-prod
     region: us-west2
     multiAZ: true
     topologySpread: 
