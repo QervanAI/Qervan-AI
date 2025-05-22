@@ -1,11 +1,11 @@
 # cluster_selectors.yaml - Enterprise Multi-Cluster Resource Orchestration
-apiVersion: scheduling.nuzon.ai/v1beta1
+apiVersion: scheduling.cirium.ai/v1beta1
 kind: ClusterSelector
 metadata:
-  name: nuzon-ai-prod-selectors
+  name: cirium-ai-prod-selectors
   labels:
     env: prod
-    app.kubernetes.io/part-of: nuzon-ai-platform
+    app.kubernetes.io/part-of: cirium-ai-platform
 spec:
   clusterGroups:
     primary:
@@ -25,7 +25,7 @@ spec:
       tolerations:
         - key: dedicated
           operator: Equal
-          value: nuzon-ai
+          value: cirium-ai
           effect: NoSchedule
 
     analytics:
