@@ -19,7 +19,7 @@ import (
 var (
 	memOpsCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "nuzon_memory_operations_total",
+			Name: "cirium_memory_operations_total",
 			Help: "Total memory operations by type and status",
 		},
 		[]string{"operation", "status"},
@@ -27,7 +27,7 @@ var (
 
 	memLatencyHist = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "nuzon_memory_latency_seconds",
+			Name:    "cirium_memory_latency_seconds",
 			Help:    "Memory operation latency distribution",
 			Buckets: []float64{0.001, 0.01, 0.1, 0.5, 1, 5},
 		},
@@ -36,7 +36,7 @@ var (
 
 	memSizeGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "nuzon_memory_storage_bytes",
+			Name: "cirium_memory_storage_bytes",
 			Help: "Total encrypted memory storage usage",
 		},
 		[]string{"tenant"},
