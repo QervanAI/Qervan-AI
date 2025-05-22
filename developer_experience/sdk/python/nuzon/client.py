@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class NuzonConfig(BaseModel):
     """Enterprise-grade client configuration"""
     base_url: str = Field(
-        default=os.getenv("NUZON_API_URL", "https://api.nuzon.ai/v3"),
+        default=os.getenv("cirium_API_URL", "https://api.cirium.ai/v3"),
         description="Base API endpoint URL"
     )
     api_key: str = Field(
