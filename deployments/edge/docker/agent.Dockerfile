@@ -30,7 +30,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 ENTRYPOINT ["/app/agent"]
 
 # Metadata
-LABEL org.opencontainers.image.title="Nuzon AI Agent" \
+LABEL org.opencontainers.image.title="Cirium AI Agent" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.source="${VCS_URL}" \
