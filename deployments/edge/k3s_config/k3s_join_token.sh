@@ -9,9 +9,9 @@ set -o errtrace
 trap 'cleanup_and_fail' ERR
 
 readonly MAX_RETRIES=3
-readonly CLUSTER_API="${CLUSTER_API:-https://k3s-controlplane.nuzon.ai:6443}"
+readonly CLUSTER_API="${CLUSTER_API:-https://k3s-controlplane.cirium.ai:6443}"
 declare -g TOKEN_FILE=""
-declare -g AUDIT_LOG="/var/log/nuzon/bootstrap.log"
+declare -g AUDIT_LOG="/var/log/cirium/bootstrap.log"
 
 main() {
   initialize_audit
