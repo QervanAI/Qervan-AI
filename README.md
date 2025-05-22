@@ -1,4 +1,4 @@
-# Nuzon AI - Enterprise-Grade Multi-Agent Orchestration Platform
+# Cirium AI - Enterprise-Grade Multi-Agent Orchestration Platform
 
 [![Enterprise-Ready](https://img.shields.io/badge/Trusted%20By-Fortune%20500%20Enterprises-FF6F00)](https://nuzon.ai/customers)
 [![Release](https://img.shields.io/github/v/release/nuzon-ai/core?label=Stable%20Release)](https://releases.nuzon.ai)
@@ -9,8 +9,10 @@
 **Mission-Critical AI Agent Framework**  
 *Version 3.4.0 | Multi-Cloud Certified 
 
-[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://nuzonai.com/)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/NuzonAIAGENT)
+[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://ciriumai.org/)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/CiriumCloud)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/BenLevinedu)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/benjaminlevin/)
 
 ---
 
@@ -103,7 +105,7 @@ graph TD
 [Secure Enclave]──[HSM]  
     │▲
     ▼│  
-[Legacy Mainframe]──[Nuzon Core]
+[Legacy Mainframe]──[Cirium Core]
 ```
 
 ## Getting Started
@@ -135,22 +137,22 @@ monitoring:
 ### Air-Gapped Installation
 - Download Offline Bundle
 ```
-nuzon-cli bundle download \
+cirium-cli bundle download \
   --version 3.4.0 \
   --components core,security,observability \
-  --output nuzon-bundle.tar.gz
+  --output cirium-bundle.tar.gz
 ```
 
 - Load Container Images
 ```
-sudo nuzon-cli bundle load \
-  --input nuzon-bundle.tar.gz \
+sudo cirium-cli bundle load \
+  --input cirium-bundle.tar.gz \
   --registry internal-registry:5000
 ```
 
 - Generate Site-Specific Config
 ```
-nuzon-cli configure airgap \
+cirium-cli configure airgap \
   --ca-cert /etc/pki/ca-trust/source.pem \
   --proxy "http://proxy.corp:3128" \
   --output ./site-config
@@ -158,7 +160,7 @@ nuzon-cli configure airgap \
 
 - Deploy Platform
 ```
-helm install nuzon-core ./site-config \
+helm install cirium-core ./site-config \
   --namespace nuzon-system \
   --create-namespace \
   --wait
@@ -177,7 +179,7 @@ helm install nuzon-core ./site-config \
 class RuntimePolicy:
     MEMORY_ENCRYPTION = True  # AES-256-XTS
     CODE_SIGNING = enforce(
-        allowed_signers=["nuzon-ca", "corp-it"]
+        allowed_signers=["cirium-ca", "corp-it"]
     )
     NETWORK_MICROSEGMENTATION = Auto(
         based_on="SPIFFE_ID"
@@ -217,7 +219,7 @@ class RuntimePolicy:
 ### Recoplaybooks:
 ```
 # Full site recovery
-nuzon-cli dr execute --plan full-recovery \
+cirium-cli dr execute --plan full-recovery \
   --snapshot 20240520-0300Z \
   --target-region aws-us-gov-west
 ```
@@ -227,7 +229,7 @@ nuzon-cli dr execute --plan full-recovery \
 ### Development Workflow
 #### Clone Secured Repo
 ```
-git clone https://github.com/nuzon-ai/core.git \
+git clone https://github.com/cirium-ai/core.git \
   --config http.extraHeader="X-GitHub-SSO: true"
 ```
 
@@ -262,7 +264,7 @@ make clean build \
 #### ECCN 5D002 - Classification applies to quantum-resistant cryptography components
 
 ```
-Copyright 2025 Nuzon Technologies Inc. All Rights Reserved.
-This software contains export-controlled technical data (see https://nuzonai.com/export-control)
+Copyright 2025 Cirium Technologies Inc. All Rights Reserved.
+This software contains export-controlled technical data (see https://ciriumai.org/export-control)
 Unauthorized reverse engineering prohibited under DMCA Section 1201.
 ```
