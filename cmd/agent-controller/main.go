@@ -15,12 +15,12 @@ import (
 	"syscall"
 	"time"
 
-	"nuzon.ai/core/agent"
-	"nuzon.ai/core/auth"
-	"nuzon.ai/core/config"
-	"nuzon.ai/core/crypto/quantum"
-	"nuzon.ai/core/db"
-	"nuzon.ai/core/telemetry"
+	"cirium.ai/core/agent"
+	"cirium.ai/core/auth"
+	"cirium.ai/core/config"
+	"cirium.ai/core/crypto/quantum"
+	"cirium.ai/core/db"
+	"cirium.ai/core/telemetry"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
