@@ -1,4 +1,4 @@
-@prefix : <https://ontology.nuzon.ai/core#> .
+@prefix : <https://ontology.cirium.ai/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -8,8 +8,8 @@
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix sc: <http://schema.org/> .
 @prefix time: <http://www.w3.org/2006/time#> .
-@prefix nz: <https://data.nuzon.ai/entities/> .
-@prefix nzs: <https://data.nuzon.ai/services/> .
+@prefix nz: <https://data.cirium.ai/entities/> .
+@prefix nzs: <https://data.cirium.ai/services/> .
 
 # Core Ontology Definitions
 :Agent a owl:Class ;
