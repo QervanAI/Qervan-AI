@@ -26,8 +26,8 @@ import (
 const (
 	resyncPeriod    = 30 * time.Second
 	maxRetries      = 5
-	controllerName  = "nuzon-federation-controller"
-	annotationKey   = "nuzon.ai/federated-resource"
+	controllerName  = "cirium-federation-controller"
+	annotationKey   = "cirium.ai/federated-resource"
 	metricsAddress  = ":9090"
 )
 
