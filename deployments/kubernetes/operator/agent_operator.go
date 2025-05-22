@@ -17,15 +17,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	aiv1alpha1 "github.com/nuzon-ai/operator/api/v1alpha1"
+	aiv1alpha1 "github.com/cirium-ai/operator/api/v1alpha1"
 )
 
 const (
-	agentFinalizer   = "finalizer.agents.nuzon.ai"
+	agentFinalizer   = "finalizer.agents.cirium.ai"
 	requeueDelay     = 10 * time.Second
 	maxConcurrent    = 5
-	agentVersionKey  = "agent.nuzon.ai/version"
-	configHashKey    = "agent.nuzon.ai/config-hash"
+	agentVersionKey  = "agent.cirium.ai/version"
+	configHashKey    = "agent.cirium.ai/config-hash"
 )
 
 // AgentReconciler manages the lifecycle of AIAgent resources
