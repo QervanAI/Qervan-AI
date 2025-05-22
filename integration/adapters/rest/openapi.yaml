@@ -1,22 +1,22 @@
 openapi: 3.0.3
 info:
-  title: Nuzon AI Enterprise Agent Framework
+  title: Cirium AI Enterprise Agent Framework
   version: 3.4.0
   description: |
     Enterprise-grade API for managing and orchestrating AI agents
     with built-in security, observability, and compliance controls
   contact:
-    name: Nuzon Security Team
-    email: api-security@nuzon.ai
-    url: https://api.nuzon.ai/support
+    name: Cirium Security Team
+    email: api-security@cirium.ai
+    url: https://api.cirium.ai/support
   license:
     name: Proprietary
-    url: https://api.nuzon.ai/license
+    url: https://api.cirium.ai/license
 
 servers:
-  - url: https://api.nuzon.ai/v3
+  - url: https://api.cirium.ai/v3
     description: Production API cluster
-  - url: https://sandbox.api.nuzon.ai/v3
+  - url: https://sandbox.api.cirium.ai/v3
     description: Sandbox environment
 
 security:
@@ -32,8 +32,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://auth.nuzon.ai/oauth2/auth
-          tokenUrl: https://auth.nuzon.ai/oauth2/token
+          authorizationUrl: https://auth.cirium.ai/oauth2/auth
+          tokenUrl: https://auth.cirium.ai/oauth2/token
           scopes:
             agent.rw: Full agent management
             task.execute: Task execution rights
