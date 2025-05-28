@@ -1,4 +1,4 @@
-# Cirium AI Enterprise Deployment Guide
+# Qervan AI Enterprise Deployment Guide
 
 ## Table of Contents
 
@@ -48,7 +48,7 @@
 ### 3.1 Kubernetes Cluster
 ```
 # Initialize Terraform 
-terraform init -backend-config="bucket=cirium-tfstate" 
+terraform init -backend-config="bucket=Qervan-tfstate" 
 
 # Provision EKS Cluster
 terraform apply -var="cluster_version=1.28" \
@@ -76,12 +76,12 @@ spec:
 
 ```
 # Add Nuzon Repo
-helm repo add cirium https://charts.cirium.ai
+helm repo add cirium https://charts.Qervan.ai
 
 # Install Core Services
-helm install nuzon-core cirium/enterprise-platform \
+helm install Qervan-core cirium/enterprise-platform \
   --values production-values.yaml \
-  --set global.encryptionKey=$(vault read nuzon-secrets/encryption-key)
+  --set global.encryptionKey=$(vault read Qervan-secrets/encryption-key)
 ```
 ### 4.2 Stateful Services
 #### PostgreSQL HA:
@@ -101,7 +101,7 @@ module "postgresql" {
 hsm-toolkit init \
   --model luna7 \
   --partitions 3 \
-  --policy-file cirium-hsm-policy.json
+  --policy-file Qervan-hsm-policy.json
 ```
 
 ### 5.2 SGX Enclaves
@@ -117,7 +117,7 @@ docker buildx build --platform linux/amd64 \
 ### 6.1 Deploy Agents
 ```
 # agent_deployment.yaml
-apiVersion: ai.cirium.io/v1beta1
+apiVersion: ai.Qervan.io/v1beta1
 kind: AgentPool
 metadata:
   name: financial-agents
@@ -179,7 +179,7 @@ k6 run --vus 1000 --duration 30m loadtest.js
 ### 9.1 Logging
 ```
 # Centralized Log Query
-logcli query '{namespace="nuzon-prod"} |= "ERROR"' \
+logcli query '{namespace="Qervan-prod"} |= "ERROR"' \
   --limit=1000 \
   --output=json > errors.json
 ```
@@ -187,7 +187,7 @@ logcli query '{namespace="nuzon-prod"} |= "ERROR"' \
 ### 9.2 Updates
 ```
 # Zero-Downtime Upgrade
-kubectl rollout restart deployment/cirium-core \
+kubectl rollout restart deployment/Qervan-core \
   --timeout=1h \
   --grace-period=300
 ```
@@ -196,8 +196,8 @@ kubectl rollout restart deployment/cirium-core \
 ### 10.1 Backup
 ```
 # Snapshot Critical Data
-velero backup create cirium-dr-$(date +%s) \
-  --include-namespaces nuzon-prod \
+velero backup create Qervan-dr-$(date +%s) \
+  --include-namespaces Qervan-prod \
   --ttl 720h
 ```
 
@@ -206,7 +206,7 @@ velero backup create cirium-dr-$(date +%s) \
 # dr_plan.yaml
 steps:
   - name: Restore Control Plane
-    action: helm rollback cirium-core --version 3.3.2
+    action: helm rollback Qervan-core --version 3.3.2
     timeout: 15m
   
   - name: Data Rehydration
@@ -215,7 +215,7 @@ steps:
 
 ### Appendix:
 
-- Cirium AI Documentation Portal
-- Enterprise Support: support@Cirium.org
+- Qervan AI Documentation Portal
+- Enterprise Support: support@Qervanai.com
 - License: Commercial (Proprietary)
-- © 2025 Cirium Technologies. Confidential & Proprietary.
+- © 2025 Qervan Technologies. Confidential & Proprietary.
