@@ -1,7 +1,7 @@
 # gdpr_enforcer.rego - Enterprise Data Protection Automation
 
 package gdpr.enforcement
-
+ 
 import future.keywords.in
 
 ########################################
