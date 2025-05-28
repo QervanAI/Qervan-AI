@@ -1,4 +1,4 @@
-# Cirium AI - Enterprise-Grade Multi-Agent Orchestration Platform
+# Qervan AI - Enterprise-Grade Multi-Agent Orchestration Platform
 
 [![Enterprise-Ready](https://img.shields.io/badge/Trusted%20By-Fortune%20500%20Enterprises-FF6F00)](https://nuzon.ai/customers)
 [![Release](https://img.shields.io/github/v/release/nuzon-ai/core?label=Stable%20Release)](https://releases.nuzon.ai)
@@ -7,12 +7,12 @@
 [![TPM 2.0](https://img.shields.io/badge/Hardware-TPM%202.0%20Required-important)](https://trustedcomputinggroup.org)
 
 **Mission-Critical AI Agent Framework**  
-*Version 3.4.0 | Multi-Cloud Certified 
+*Version 2.3.0 | Multi-Cloud Certified 
 
-[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://ciriumai.org/)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/CiriumCloud)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/BenLevinedu)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/benjaminlevin/)
+[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://qervanai.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/QervanWorld)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/Georgiosmsg)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/georgios-takos-75b5375/)
 
 ---
 
@@ -105,7 +105,7 @@ graph TD
 [Secure Enclave]──[HSM]  
     │▲
     ▼│  
-[Legacy Mainframe]──[Cirium Core]
+[Legacy Mainframe]──[Qervan Core]
 ```
 
 ## Getting Started
@@ -140,13 +140,13 @@ monitoring:
 cirium-cli bundle download \
   --version 3.4.0 \
   --components core,security,observability \
-  --output cirium-bundle.tar.gz
+  --output Qervan-bundle.tar.gz
 ```
 
 - Load Container Images
 ```
-sudo cirium-cli bundle load \
-  --input cirium-bundle.tar.gz \
+sudo Qervan-cli bundle load \
+  --input Qervan-bundle.tar.gz \
   --registry internal-registry:5000
 ```
 
@@ -160,8 +160,8 @@ cirium-cli configure airgap \
 
 - Deploy Platform
 ```
-helm install cirium-core ./site-config \
-  --namespace nuzon-system \
+helm install Qervan-core ./site-config \
+  --namespace Qervan-system \
   --create-namespace \
   --wait
 ```
@@ -229,7 +229,7 @@ cirium-cli dr execute --plan full-recovery \
 ### Development Workflow
 #### Clone Secured Repo
 ```
-git clone https://github.com/cirium-ai/core.git \
+git clone https://github.com/Qervan-ai/core.git \
   --config http.extraHeader="X-GitHub-SSO: true"
 ```
 
