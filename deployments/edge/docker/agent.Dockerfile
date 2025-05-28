@@ -1,5 +1,5 @@
 # agent.Dockerfile - Enterprise Minimal Container Builder
-# Build stage
+# Build stage 
 FROM --platform=$BUILDPLATFORM golang:1.21-alpine3.19 AS builder
 ARG TARGETOS TARGETARCH
 
