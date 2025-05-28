@@ -1,7 +1,7 @@
 // auditor.go - Enterprise Security Audit Engine
 package auditor
 
-import (
+import ( 
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
