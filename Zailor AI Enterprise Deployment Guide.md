@@ -1,4 +1,4 @@
-# Qervan AI Enterprise Deployment Guide
+# Zailor AI Enterprise Deployment Guide
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@
 
 ### Licenses:
 
-- Cirium AI Enterprise License Key
+- Zailorv AI Enterprise License Key
 - HSM Provisioning Certificates (PKCS#11)
 
 ## 3. Infrastructure Provisioning
@@ -48,7 +48,7 @@
 ### 3.1 Kubernetes Cluster
 ```
 # Initialize Terraform 
-terraform init -backend-config="bucket=Qervan-tfstate" 
+terraform init -backend-config="bucket=Zailor-tfstate" 
 
 # Provision EKS Cluster
 terraform apply -var="cluster_version=1.28" \
@@ -75,13 +75,13 @@ spec:
 ### 4.1 Helm Charts
 
 ```
-# Add Nuzon Repo
-helm repo add cirium https://charts.Qervan.ai
+# Add Zailor Repo
+helm repo add cirium https://charts.Zailor.ai
 
 # Install Core Services
-helm install Qervan-core cirium/enterprise-platform \
+helm install Zailor-core Zailor/enterprise-platform \
   --values production-values.yaml \
-  --set global.encryptionKey=$(vault read Qervan-secrets/encryption-key)
+  --set global.encryptionKey=$(vault read Zailor-secrets/encryption-key)
 ```
 ### 4.2 Stateful Services
 #### PostgreSQL HA:
@@ -101,7 +101,7 @@ module "postgresql" {
 hsm-toolkit init \
   --model luna7 \
   --partitions 3 \
-  --policy-file Qervan-hsm-policy.json
+  --policy-file Zailor-hsm-policy.json
 ```
 
 ### 5.2 SGX Enclaves
@@ -117,7 +117,7 @@ docker buildx build --platform linux/amd64 \
 ### 6.1 Deploy Agents
 ```
 # agent_deployment.yaml
-apiVersion: ai.Qervan.io/v1beta1
+apiVersion: ai.Zailor.io/v1beta1
 kind: AgentPool
 metadata:
   name: financial-agents
@@ -187,7 +187,7 @@ logcli query '{namespace="Qervan-prod"} |= "ERROR"' \
 ### 9.2 Updates
 ```
 # Zero-Downtime Upgrade
-kubectl rollout restart deployment/Qervan-core \
+kubectl rollout restart deployment/Zailor-core \
   --timeout=1h \
   --grace-period=300
 ```
@@ -196,7 +196,7 @@ kubectl rollout restart deployment/Qervan-core \
 ### 10.1 Backup
 ```
 # Snapshot Critical Data
-velero backup create Qervan-dr-$(date +%s) \
+velero backup create Zailor-dr-$(date +%s) \
   --include-namespaces Qervan-prod \
   --ttl 720h
 ```
@@ -206,7 +206,7 @@ velero backup create Qervan-dr-$(date +%s) \
 # dr_plan.yaml
 steps:
   - name: Restore Control Plane
-    action: helm rollback Qervan-core --version 3.3.2
+    action: helm rollback Zailor-core --version 3.3.2
     timeout: 15m
   
   - name: Data Rehydration
@@ -215,7 +215,7 @@ steps:
 
 ### Appendix:
 
-- Qervan AI Documentation Portal
-- Enterprise Support: support@Qervanai.com
+- Zailor AI Documentation Portal
+- Enterprise Support: support@Zailorai.com
 - License: Commercial (Proprietary)
-- © 2025 Qervan Technologies. Confidential & Proprietary.
+- © 2025 Zailor Technologies. Confidential & Proprietary.
