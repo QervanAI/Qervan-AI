@@ -1,4 +1,4 @@
-# gdpr_enforcer.rego - Enterprise Data Protection Automation
+# gdpr_enforcer.rego - Enterprise Data Protection Automation 
 
 package gdpr.enforcement
  
