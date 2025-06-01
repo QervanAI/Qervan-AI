@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     -o /usr/bin/agent
 
 # Security scan stage
-FROM aquasec/trivy:0.45.1 AS scanner
+FROM aquasec/trivy:0.45.1 AS scanner 
 COPY --from=builder /usr/bin/agent /agent
 RUN trivy fs --severity HIGH,CRITICAL --exit-code 1 /
 
