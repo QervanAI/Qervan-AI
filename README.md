@@ -1,4 +1,4 @@
-# Zailor AI - Enterprise-Grade Multi-Agent Orchestration Platform
+# ZNOGEN AI - Enterprise-Grade Multi-Agent Orchestration Platform
 
 [![Enterprise-Ready](https://img.shields.io/badge/Trusted%20By-Fortune%20500%20Enterprises-FF6F00)](https://nuzon.ai/customers)
 [![Release](https://img.shields.io/github/v/release/nuzon-ai/core?label=Stable%20Release)](https://releases.nuzon.ai)
@@ -9,8 +9,8 @@
 **Mission-Critical AI Agent Framework**  
 *Version 2.3.0 | Multi-Cloud Certified 
 
-[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://zailorai.com/)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/ZailorLabs)
+[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://znogenai.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/ZNOGENCloud)
 
 
 ---
@@ -104,7 +104,7 @@ graph TD
 [Secure Enclave]──[HSM]  
     │▲
     ▼│  
-[Legacy Mainframe]──[Zailor Core]
+[Legacy Mainframe]──[ZNOGEN Core]
 ```
 
 ## Getting Started
@@ -139,12 +139,12 @@ monitoring:
 Zailor-cli bundle download \
   --version 3.4.0 \
   --components core,security,observability \
-  --output Zailor-bundle.tar.gz
+  --output ZNOGEN-bundle.tar.gz
 ```
 
 - Load Container Images
 ```
-sudo Zailor-cli bundle load \
+sudo ZNOGEN-cli bundle load \
   --input Zailor-bundle.tar.gz \
   --registry internal-registry:5000
 ```
@@ -263,7 +263,7 @@ make clean build \
 #### ECCN 5D002 - Classification applies to quantum-resistant cryptography components
 
 ```
-Copyright 2025 Zailor Technologies Inc. All Rights Reserved.
-This software contains export-controlled technical data (see https://Zailor.org/export-control)
+Copyright 2025 ZNOGEN Technologies Inc. All Rights Reserved.
+This software contains export-controlled technical data (see https://ZNOGEN.org/export-control)
 Unauthorized reverse engineering prohibited under DMCA Section 1201.
 ```
