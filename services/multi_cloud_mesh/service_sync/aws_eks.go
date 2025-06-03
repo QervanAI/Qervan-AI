@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	eksClusterRole   = "NuzonEKSClusterRole"
-	eksNodeGroupRole = "NuzonEKSNodeRole"
+	eksClusterRole   = "WavineEKSClusterRole"
+	eksNodeGroupRole = "WavineEKSNodeRole"
 	eksPolicyARN     = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 )
 
