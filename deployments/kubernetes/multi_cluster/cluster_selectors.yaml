@@ -1,11 +1,11 @@
 # cluster_selectors.yaml - Enterprise Multi-Cluster Resource Orchestration
-apiVersion: scheduling.cirium.ai/v1beta1
+apiVersion: scheduling.Wavine.ai/v1beta1
 kind: ClusterSelector
 metadata:
-  name: cirium-ai-prod-selectors
+  name: Wavine-ai-prod-selectors
   labels:
     env: prod
-    app.kubernetes.io/part-of: cirium-ai-platform
+    app.kubernetes.io/part-of: Wavine-ai-platform
 spec:
   clusterGroups:
     primary:
