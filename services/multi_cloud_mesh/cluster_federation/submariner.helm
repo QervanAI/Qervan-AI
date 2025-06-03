@@ -6,7 +6,7 @@ metadata:
 spec:
   globalnetEnabled: true
   defaultGlobalnetClusterSize: 65536
-  defaultCustomDomains: ["nuzon.ai"]
+  defaultCustomDomains: ["Wavine.ai"]
   connectionHealthCheck:
     enabled: true
     intervalSeconds: 30
