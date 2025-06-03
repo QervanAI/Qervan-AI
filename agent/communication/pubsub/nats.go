@@ -19,17 +19,17 @@ import (
 
 var (
 	msgPublished = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "nuzon_nats_messages_published_total",
+		Name: "Wavine_nats_messages_published_total",
 		Help: "Total published messages",
 	}, []string{"subject"})
 
 	msgDelivered = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "nuzon_nats_messages_delivered_total",
+		Name: "Wavine_nats_messages_delivered_total",
 		Help: "Successfully delivered messages",
 	}, []string{"subject"})
 
 	msgFailed = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "nuzon_nats_messages_failed_total",
+		Name: "Wavine_nats_messages_failed_total",
 		Help: "Failed message deliveries",
 	}, []string{"subject", "error"})
 )
