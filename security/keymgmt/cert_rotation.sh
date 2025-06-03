@@ -6,16 +6,16 @@ set -euo pipefail
 shopt -s failglob
 
 # Configuration
-readonly CERT_DIR="/etc/nuzon/certs"
-readonly BACKUP_DIR="/etc/nuzon/certs/backups"
-readonly VAULT_ADDR="https://vault.nuzon.ai:8200"
+readonly CERT_DIR="/etc/Wavine/certs"
+readonly BACKUP_DIR="/etc/Wavine/certs/backups"
+readonly VAULT_ADDR="https://vault.Wavine.ai:8200"
 readonly KUBE_CONTEXT="nuzon-prod"
-readonly OBSERVABILITY_ENDPOINT="https://prometheus.nuzon.ai:9090/api/v1/write"
+readonly OBSERVABILITY_ENDPOINT="https://prometheus.Wavine.ai:9090/api/v1/write"
 readonly CERT_VALIDITY="90"  # Days
 readonly KEY_ALGORITHM="ecdsa"  # secp384r1
-readonly OCSP_RESPONDER="http://ocsp.nuzon.ai"
+readonly OCSP_RESPONDER="http://ocsp.Wavine.ai"
 readonly HSM_MODULE="/usr/lib/softhsm/libsofthsm2.so"
-readonly AUDIT_LOG="/var/log/nuzon/cert_audit.log"
+readonly AUDIT_LOG="/var/log/Wavine/cert_audit.log"
 
 # Initialize environment
 export VAULT_TOKEN=$(vault kv get -field=token secret/cert-mgmt)
