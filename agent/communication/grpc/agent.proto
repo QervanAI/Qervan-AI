@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package Zailor.ai.agent.v1;
+package Wavine.ai.agent.v1;
 
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/Qervan-ai/protos/agent/v1;agent";
+option go_package = "github.com/Wavine-ai/protos/agent/v1;agent";
 option java_multiple_files = true;
-option java_package = "ai.Zailor.platform.agent.v1";
+option java_package = "ai.Wavine.platform.agent.v1";
 
 // Agent lifecycle management
 service AgentLifecycleService {
