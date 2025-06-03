@@ -1,4 +1,4 @@
-# ZNOGEN AI Enterprise Deployment Guide
+# Wavine AI Enterprise Deployment Guide
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@
 
 ### Licenses:
 
-- ZNOGEN AI Enterprise License Key
+- Wavine AI Enterprise License Key
 - HSM Provisioning Certificates (PKCS#11)
 
 ## 3. Infrastructure Provisioning
@@ -48,7 +48,7 @@
 ### 3.1 Kubernetes Cluster
 ```
 # Initialize Terraform 
-terraform init -backend-config="bucket=ZNOGEN-tfstate" 
+terraform init -backend-config="bucket=Wavine-tfstate" 
 
 # Provision EKS Cluster
 terraform apply -var="cluster_version=1.28" \
@@ -75,13 +75,13 @@ spec:
 ### 4.1 Helm Charts
 
 ```
-# Add ZNOGEN Repo
-helm repo add ZNOGEN https://charts.ZNOGEN.ai
+# Add Wavine Repo
+helm repo add ZNOGEN https://charts.Wavine.ai
 
 # Install Core Services
-helm install ZNOGEN-core Zailor/enterprise-platform \
+helm install Wavine-core Wavine/enterprise-platform \
   --values production-values.yaml \
-  --set global.encryptionKey=$(vault read Zailor-secrets/encryption-key)
+  --set global.encryptionKey=$(vault read Wavine-secrets/encryption-key)
 ```
 ### 4.2 Stateful Services
 #### PostgreSQL HA:
@@ -101,7 +101,7 @@ module "postgresql" {
 hsm-toolkit init \
   --model luna7 \
   --partitions 3 \
-  --policy-file ZNOGEN-hsm-policy.json
+  --policy-file Wavine-hsm-policy.json
 ```
 
 ### 5.2 SGX Enclaves
@@ -110,14 +110,14 @@ hsm-toolkit init \
 docker buildx build --platform linux/amd64 \
   --file enclave.Dockerfile \
   --secret id=sgx-cert,src=./sgx_credentials.pem \
-  -t nuzon-enclave:3.4.0 .
+  -t Wavine-enclave:3.4.0 .
 ```
 
 ## 6. Agent Framework Setup
 ### 6.1 Deploy Agents
 ```
 # agent_deployment.yaml
-apiVersion: ai.ZNOGEN.io/v1beta1
+apiVersion: ai.Wavine.io/v1beta1
 kind: AgentPool
 metadata:
   name: financial-agents
@@ -155,7 +155,7 @@ compliance {
 ### 7.2 SOC2 Auditing
 ```
 # Run Compliance Scan
-cirium-cli audit soc2 \
+Wavine-cli audit soc2 \
   --checklist nist-800-53 \
   --output-format=json > audit-report.json
 ```
@@ -187,7 +187,7 @@ logcli query '{namespace="ZNOGEN-prod"} |= "ERROR"' \
 ### 9.2 Updates
 ```
 # Zero-Downtime Upgrade
-kubectl rollout restart deployment/ZNOGEN-core \
+kubectl rollout restart deployment/Wavine-core \
   --timeout=1h \
   --grace-period=300
 ```
@@ -196,8 +196,8 @@ kubectl rollout restart deployment/ZNOGEN-core \
 ### 10.1 Backup
 ```
 # Snapshot Critical Data
-velero backup create ZNOGEN-dr-$(date +%s) \
-  --include-namespaces ZNOGEN-prod \
+velero backup create Wavine-dr-$(date +%s) \
+  --include-namespaces Wavine-prod \
   --ttl 720h
 ```
 
@@ -206,7 +206,7 @@ velero backup create ZNOGEN-dr-$(date +%s) \
 # dr_plan.yaml
 steps:
   - name: Restore Control Plane
-    action: helm rollback ZNOGEN-core --version 3.3.2
+    action: helm rollback Wavine-core --version 3.3.2
     timeout: 15m
   
   - name: Data Rehydration
@@ -215,7 +215,7 @@ steps:
 
 ### Appendix:
 
-- ZNOGEN AI Documentation Portal
-- Enterprise Support: support@ZNOGENai.com
+- Wavine AI Documentation Portal
+- Enterprise Support: support@Wavineai.com
 - License: Commercial (Proprietary)
-- © 2025 ZNOGEN Technologies. Confidential & Proprietary.
+- © 2025 Wavine Technologies. Confidential & Proprietary.
