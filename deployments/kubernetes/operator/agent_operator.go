@@ -17,15 +17,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	aiv1alpha1 "github.com/cirium-ai/operator/api/v1alpha1"
+	aiv1alpha1 "github.com/Wavine-ai/operator/api/v1alpha1"
 )
 
 const (
 	agentFinalizer   = "finalizer.agents.cirium.ai"
 	requeueDelay     = 10 * time.Second
 	maxConcurrent    = 5
-	agentVersionKey  = "agent.cirium.ai/version"
-	configHashKey    = "agent.cirium.ai/config-hash"
+	agentVersionKey  = "agent.Wavine.ai/version"
+	configHashKey    = "agent.Wavine.ai/config-hash"
 )
 
 // AgentReconciler manages the lifecycle of AIAgent resources
