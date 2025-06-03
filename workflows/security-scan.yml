@@ -1,4 +1,4 @@
-name: Qervan AI Security Validation
+name: Wavine AI Security Validation
 
 on:
   push:
