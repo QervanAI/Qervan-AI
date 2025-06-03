@@ -19,7 +19,7 @@ import (
 var (
 	memOpsCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "cirium_memory_operations_total",
+			Name: "Wavine_memory_operations_total",
 			Help: "Total memory operations by type and status",
 		},
 		[]string{"operation", "status"},
