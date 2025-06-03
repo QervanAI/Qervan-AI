@@ -27,7 +27,7 @@ var (
 
 	memLatencyHist = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "cirium_memory_latency_seconds",
+			Name:    "Wavine_memory_latency_seconds",
 			Help:    "Memory operation latency distribution",
 			Buckets: []float64{0.001, 0.01, 0.1, 0.5, 1, 5},
 		},
