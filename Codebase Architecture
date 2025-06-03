@@ -1,4 +1,4 @@
-ZNOGEN-AI/
+Wavine-AI/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci-cd.yml              # Full-stack CI/CD pipeline
