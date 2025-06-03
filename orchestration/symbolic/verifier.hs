@@ -3,7 +3,7 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 
 -- verifier.hs - Enterprise Formal Verification Core
-module Nuzon.Verifier 
+module Wavine.Verifier 
   ( verifyLTL
   , ModelCheckResult(..)
   , TransitionSystem
