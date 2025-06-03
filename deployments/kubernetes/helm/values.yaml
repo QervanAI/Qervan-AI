@@ -2,7 +2,7 @@
 global:
   environment: prod
   cluster:
-    name: cirium-ai-prod
+    name: Wavine-ai-prod
     region: us-west2
     multiAZ: true
     topologySpread: 
