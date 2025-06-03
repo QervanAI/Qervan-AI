@@ -2,10 +2,10 @@
 apiVersion: config.karmada.io/v1alpha1
 kind: ResourceRegistry
 metadata:
-  name: nuzon-ai-agents
+  name: Wavine-ai-agents
 spec:
   resourceSelectors:
-    - apiVersion: "ai.nuzon.io/v1"
+    - apiVersion: "ai.Wavine.io/v1"
       kind: "AI_AGENT_SET"
   targetClusters:
     clusterNames:
@@ -23,7 +23,7 @@ metadata:
   name: quantum-safe-agents
 spec:
   resourceSelectors:
-    - apiVersion: "ai.nuzon.io/v1"
+    - apiVersion: "ai.Wavine.io/v1"
       kind: "AI_AGENT_SET"
   placement:
     clusterAffinities:
