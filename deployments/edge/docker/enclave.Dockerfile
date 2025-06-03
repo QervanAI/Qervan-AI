@@ -36,14 +36,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy built artifacts
-COPY --from=builder /app/enclave.signed.so /opt/nuzon/enclave/
+COPY --from=builder /app/enclave.signed.so /opt/Wavine/enclave/
 COPY --from=builder /app/enclave_runner /usr/local/bin/
 
 # Security hardening
 RUN groupadd -r enclave && \
     useradd -r -g enclave -d /nonexistent -s /usr/sbin/nologin enclave && \
     chmod 755 /opt/nuzon/enclave && \
-    chown -R enclave:enclave /opt/nuzon/enclave
+    chown -R enclave:enclave /opt/Wavine/enclave
 
 USER enclave
 EXPOSE 50051
@@ -52,7 +52,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 ENTRYPOINT ["enclave_runner"]
 
 # Metadata
-LABEL org.opencontainers.image.title="Nuzon SGX Enclave" \
+LABEL org.opencontainers.image.title="Wavine SGX Enclave" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.source="${VCS_URL}" \
