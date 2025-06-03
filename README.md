@@ -1,4 +1,4 @@
-# ZNOGEN AI - Enterprise-Grade Multi-Agent Orchestration Platform
+# Wavine AI - Enterprise-Grade Multi-Agent Orchestration Platform
 
 [![Enterprise-Ready](https://img.shields.io/badge/Trusted%20By-Fortune%20500%20Enterprises-FF6F00)](https://nuzon.ai/customers)
 [![Release](https://img.shields.io/github/v/release/nuzon-ai/core?label=Stable%20Release)](https://releases.nuzon.ai)
@@ -6,11 +6,13 @@
 [![FedRAMP](https://img.shields.io/badge/Compliance-FedRAMP%20Moderate-0052CC)](https://marketplace.fedramp.gov)
 [![TPM 2.0](https://img.shields.io/badge/Hardware-TPM%202.0%20Required-important)](https://trustedcomputinggroup.org)
 
-**Mission-Critical AI Agent Framework**  
-*Version 2.3.0 | Multi-Cloud Certified 
+**ENTERPRISE MULTI AGENT AI FRAMEWORK**  
+*Version 1.3.0 | Multi-Cloud Certified 
 
-[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://znogenai.com/)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/ZNOGENCloud)
+[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://wavineai.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/Wavinework)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?logo=twitter)](https://x.com/Jeff1993MS)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/yhtang1993)
 
 
 ---
@@ -35,30 +37,6 @@
 
 ## Architecture Deep Dive
 
-### System Components
-```mermaid
-
-%% Example Mermaid Diagram
-graph TD
-  A[Control Plane] --> B(Orchestrator)
-  A --> C(Policy Engine)
-  A --> D(Crypto Service)
-  D --> E{{HSM/TPM 2.0}}
-  B --> F[Data Plane]
-  F --> G(SGX Enclaves)
-  F --> H(Streaming Bridge)
-  F --> I(WASM Sandbox)
-  G --> J[Legacy Adapters]
-  H --> J
-  I --> J
-  J --> K[Observability Stack]
-  K --> L(Telemetry Collector)
-  L --> M(Audit Vault)
-  K --> N(Compliance Dashboard)
-  M --> O[[Blockchain Ledger]]
-          
-
-```
 
 1. **Control Plane**
    - **Orchestrator**: Kubernetes-native agent scheduler with bin-packing algorithms
@@ -96,7 +74,7 @@ graph TD
 [On-Prem DC] <-> [Regional Edge] <-> [AWS GovCloud]
                    │▲
                    ▼│  
-[Azure Commercial]─┴─[GCP]
+[Wavine Commercial]─┴─[GCP]
 ```
 
 ### Air-Gapped Configuration
@@ -104,7 +82,7 @@ graph TD
 [Secure Enclave]──[HSM]  
     │▲
     ▼│  
-[Legacy Mainframe]──[ZNOGEN Core]
+[Legacy Mainframe]──[Wavine Core]
 ```
 
 ## Getting Started
@@ -136,22 +114,22 @@ monitoring:
 ### Air-Gapped Installation
 - Download Offline Bundle
 ```
-Zailor-cli bundle download \
+Wavine-cli bundle download \
   --version 3.4.0 \
   --components core,security,observability \
-  --output ZNOGEN-bundle.tar.gz
+  --output Wavine-bundle.tar.gz
 ```
 
 - Load Container Images
 ```
-sudo ZNOGEN-cli bundle load \
-  --input Zailor-bundle.tar.gz \
+sudo Wavine-cli bundle load \
+  --input Wavine-bundle.tar.gz \
   --registry internal-registry:5000
 ```
 
 - Generate Site-Specific Config
 ```
-Zailor-cli configure airgap \
+Wavine-cli configure airgap \
   --ca-cert /etc/pki/ca-trust/source.pem \
   --proxy "http://proxy.corp:3128" \
   --output ./site-config
@@ -159,8 +137,8 @@ Zailor-cli configure airgap \
 
 - Deploy Platform
 ```
-helm install Zailor-core ./site-config \
-  --namespace Zailor-system \
+helm install Wavine-core ./site-config \
+  --namespace Wavine-system \
   --create-namespace \
   --wait
 ```
@@ -178,7 +156,7 @@ helm install Zailor-core ./site-config \
 class RuntimePolicy:
     MEMORY_ENCRYPTION = True  # AES-256-XTS
     CODE_SIGNING = enforce(
-        allowed_signers=["Zailor-ca", "corp-it"]
+        allowed_signers=["Wavine-ca", "corp-it"]
     )
     NETWORK_MICROSEGMENTATION = Auto(
         based_on="SPIFFE_ID"
@@ -218,7 +196,7 @@ class RuntimePolicy:
 ### Recoplaybooks:
 ```
 # Full site recovery
-Zailor-cli dr execute --plan full-recovery \
+Wavine-cli dr execute --plan full-recovery \
   --snapshot 20240520-0300Z \
   --target-region aws-us-gov-west
 ```
@@ -228,7 +206,7 @@ Zailor-cli dr execute --plan full-recovery \
 ### Development Workflow
 #### Clone Secured Repo
 ```
-git clone https://github.com/Zailor-ai/core.git \
+git clone https://github.com/Wavine-ai/core.git \
   --config http.extraHeader="X-GitHub-SSO: true"
 ```
 
@@ -263,7 +241,7 @@ make clean build \
 #### ECCN 5D002 - Classification applies to quantum-resistant cryptography components
 
 ```
-Copyright 2025 ZNOGEN Technologies Inc. All Rights Reserved.
-This software contains export-controlled technical data (see https://ZNOGEN.org/export-control)
+Copyright 2025 Wavine Technologies Inc. All Rights Reserved.
+This software contains export-controlled technical data (see https://Wavine.org/export-control)
 Unauthorized reverse engineering prohibited under DMCA Section 1201.
 ```
