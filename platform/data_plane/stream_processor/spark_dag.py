@@ -12,7 +12,7 @@ class EnterpriseBatchAnalytics:
         
     def configure_spark(self):
         return SparkSession.builder \
-            .appName("NuzonAgentAnalytics") \
+            .appName("WavineAgentAnalytics") \
             .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
             .config("spark.hadoop.fs.s3a.aws.credentials.provider", "com.amazonaws.auth.WebIdentityTokenCredentialsProvider") \
             .config("spark.sql.parquet.datetimeRebaseModeInWrite", "CORRECTED") \
@@ -26,7 +26,7 @@ class EnterpriseBatchAnalytics:
 
     def configure_logging(self):
         log4j = self.spark._jvm.org.apache.log4j
-        logger = log4j.LogManager.getLogger("NuzonBatchAnalytics")
+        logger = log4j.LogManager.getLogger("WavineBatchAnalytics")
         return logger
 
     def run_pipeline(self):
